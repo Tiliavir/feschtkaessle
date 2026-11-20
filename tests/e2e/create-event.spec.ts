@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { stubStoragePersistence } from './utils';
 
 test('create flow enables start and navigates to cashier', async ({ page }) => {
   await page.goto('/create/');
@@ -57,4 +58,19 @@ test('create imports an event from a JSON file', async ({ page }) => {
 
   await page.setInputFiles('#import-file', 'tests/e2e/fixtures/import-invalid.txt');
   await expect(page.locator('#import-error')).toContainText('Ungültiges JSON-Format');
+});
+
+test('starting an event requests persistent storage', async ({ page }) => {
+  await page.addInitScript(stubStoragePersistence, true);
+  await page.goto('/create/');
+  await page.fill('#event-name', 'Vereinsfest');
+  await page.fill('#item-name', 'Wasser');
+  await page.fill('#item-price', '1.50');
+  await page.click('#btn-add-item');
+  await page.check('#accept-liability');
+
+  await page.click('#btn-start-event');
+  await expect(page.locator('#cashier-event-name')).toContainText('Vereinsfest');
+
+  expect(await page.evaluate(() => sessionStorage.getItem('persist-calls'))).toBe('1');
 });
