@@ -85,5 +85,5 @@ export function stubStoragePersistence(granted: boolean) {
 export function configHash(config: unknown): string {
   const bytes = new TextEncoder().encode(JSON.stringify(config));
   const base64 = btoa(Array.from(bytes, (byte) => String.fromCodePoint(byte)).join(''));
-  return `#cfg=${base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`;
+  return `#cfg=${base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
 }
