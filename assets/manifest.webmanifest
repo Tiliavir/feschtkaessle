@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "MVW Kassierer",
-  "short_name": "Kassierer",
-  "description": "Browser-basierte Kasse für Vereinsfeste",
+  "name": {{ site.Title | jsonify }},
+  "short_name": {{ site.Title | jsonify }},
+  "description": {{ site.Params.description | jsonify }},
   "lang": "de",
   "start_url": "./",
   "scope": "./",

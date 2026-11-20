@@ -1,12 +1,12 @@
 {
-  "name": "mvw-cashier-app",
-  "version": "0.10.1",
-  "description": "Browser-based cashier app for club events",
+  "name": "feschtkaessle",
+  "version": "0.11.0",
+  "description": "Die einfache Kasse für Vereine & Feste — browser-based cashier app for club events",
   "license": "MIT",
   "author": "Markus Lindenmann",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Tiliavir/mvw-cashier-app.git"
+    "url": "https://github.com/Tiliavir/feschtkaessle.git"
   },
   "scripts": {
     "compile": "hugo --cleanDestinationDir --minify",

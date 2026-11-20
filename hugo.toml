@@ -1,6 +1,6 @@
 baseURL = '/'
 locale = 'de'
-title = 'MVW Kassierer'
+title = 'Feschtkässle'
 enableRobotsTXT = true
 disableKinds = ['taxonomy', 'term', 'RSS']
 assetDir = 'assets'
@@ -17,5 +17,5 @@ assetDir = 'assets'
     treeShaking = true
 
 [params]
-  description = 'Browser-basierte Kasse für Vereinsfeste'
+  description = 'Die einfache Kasse für Vereine & Feste'
   author = 'Markus Lindenmann'

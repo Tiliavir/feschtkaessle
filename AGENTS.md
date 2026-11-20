@@ -1,8 +1,8 @@
-# AGENTS.md - MVW Kassierer App
+# AGENTS.md - Feschtkässle
 
 ## Overview
 
-MVW Kassierer is a browser-based cashier application for club events (Vereinsfeste). It runs entirely in the browser with no server — all data is persisted in `localStorage`. Users can create events, add items to sell, record transactions, and view statistics.
+Feschtkässle ("Die einfache Kasse für Vereine & Feste", formerly MVW Kassierer) is a browser-based cashier application for club events (Vereinsfeste). It runs entirely in the browser with no server — all data is persisted in `localStorage`. Users can create events, add items to sell, record transactions, and view statistics.
 
 ## Architecture
 
@@ -38,7 +38,7 @@ Each page app (e.g. `assets/ts/app.ts`, `assets/ts/create/create-app.ts`) import
 
 ### Installable app (PWA)
 
-- **`static/manifest.webmanifest`** — standalone display, relative `start_url`/`scope` (works under the GitHub Pages subpath). Icons in `static/icons/`: 192/512 PNG `any` (from `static/favicon.svg`) and `maskable` (from `static/icons/icon-maskable.svg`); regenerate with `rsvg-convert -w <size> -h <size> <svg> -o <png>`.
+- **`assets/manifest.webmanifest`** — Hugo template (name and description from `hugo.toml`), published on the home page build; standalone display, relative `start_url`/`scope` (works under the GitHub Pages subpath). Icons in `static/icons/`: 192/512 PNG `any` (from `static/favicon.svg`) and `maskable` (from `static/icons/icon-maskable.svg`); regenerate with `rsvg-convert -w <size> -h <size> <svg> -o <png>`.
 - **`assets/ts/sw/sw.ts`** — service worker, built by `layouts/partials/pwa.html` to `sw.js` in production builds only (`hugo serve` gets none). Precaches all pages (self-contained, inline CSS/JS) and icons; cache-first. Cache version = build time, so every deploy refreshes the cache. Has its own `tsconfig.json` (WebWorker lib).
 - **`assets/ts/register-sw.ts`** — registers the service worker.
 
@@ -221,3 +221,5 @@ npm run compile && npx playwright test tests/e2e/cashier.spec.ts -g "test name"
 3. **Touch support**: Handle both mouse and touch events for drag-and-drop
 4. **German locale**: All user-facing text in German
 5. **No external dependencies**: Pure browser APIs, no npm runtime deps
+6. **Name in one place**: the app name is `title` and the tagline `params.description` in `hugo.toml`; page titles, meta descriptions and the web app manifest (`assets/manifest.webmanifest`, a Hugo template) read them from there.
+7. **Internal identifiers keep the old name**: `kassierer_app_v1`, `kassierer_vision_v1`, the `kassierer-` cache prefix and the `kassierer-sales` export type. Renaming them would lose data or break existing exports.

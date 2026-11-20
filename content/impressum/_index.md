@@ -1,6 +1,6 @@
 ---
 title: 'Impressum'
-description: 'Impressum - MVW Kassierer'
+description: 'Impressum'
 keywords: ['Impressum', 'Kontakt', 'Rechtliches']
 ---
 

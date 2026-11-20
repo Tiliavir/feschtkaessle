@@ -17,6 +17,9 @@ test('manifest makes the app installable as standalone app', async ({ page, requ
   expect(response.ok()).toBe(true);
   const manifest = await response.json();
 
+  expect(manifest.name).toBe('Feschtkässle');
+  expect(manifest.short_name).toBe('Feschtkässle');
+  expect(manifest.description).toBe('Die einfache Kasse für Vereine & Feste');
   expect(manifest.display).toBe('standalone');
   expect(manifest.start_url).toBe('./');
   expect(manifest.scope).toBe('./');
@@ -51,4 +54,12 @@ test('app works offline once the service worker is installed', async ({ page, co
 
   await page.goto('/');
   await expect(page.locator('#cashier-event-name')).toContainText('Vereinsfest');
+});
+
+test('pages carry the app name and tagline from the site config', async ({ page }) => {
+  await page.goto('/create/');
+  await expect(page).toHaveTitle('Neue Veranstaltung - Feschtkässle');
+  await page.goto('/impressum/');
+  await expect(page).toHaveTitle('Impressum - Feschtkässle');
+  await expect(page.locator('meta[name="description"]')).not.toHaveAttribute('content', /MVW/);
 });
