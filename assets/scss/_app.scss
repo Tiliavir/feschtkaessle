@@ -1000,3 +1000,14 @@ html[data-direction="back"] {
   font-size: 0.85rem;
   margin: 0.25rem 0 0.75rem 1.25rem;
 }
+
+// ─── Sales export / import (stats page) ───────────────────────────────────────
+.sales-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.close-notice {
+  margin: 0;
+}

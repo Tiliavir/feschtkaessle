@@ -105,7 +105,7 @@ const App = (() => {
         }
       }
 
-      const tx = Models.createTransaction(txItems, total, safeReceived, change);
+      const tx = Models.createTransaction(state.deviceId, txItems, total, safeReceived, change);
       state = Storage.addTransaction(state, active.id, tx);
 
       cart = {};

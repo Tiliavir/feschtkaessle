@@ -22,11 +22,21 @@
     <button id="btn-close-event" class="btn btn-danger btn-full" disabled>
       Veranstaltung beenden
     </button>
+    <p id="close-notice" class="section-hint close-notice" hidden>
+      Veranstaltung beendet. Exportiere die Abrechnung unter
+      <a id="close-notice-stats" href="settings/">Statistik</a>, damit die Verkäufe nicht nur auf diesem Gerät liegen.
+    </p>
   </div>
 
   <section class="settings-section">
     <h2 class="section-title">Alle Veranstaltungen</h2>
     <div id="all-events-list" class="all-events-list"></div>
+  </section>
+
+  <section class="settings-section">
+    <h2 class="section-title">Dieses Gerät</h2>
+    <label for="device-name" class="field-label">Name in der Abrechnung</label>
+    <input id="device-name" type="text" class="text-input" placeholder="z.B. Kasse Grill" autocomplete="off">
   </section>
 
   <section class="settings-section">

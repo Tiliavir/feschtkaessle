@@ -122,6 +122,14 @@ const SettingsApp = (() => {
   }
 
   function bindEvents(): void {
+    const deviceInput = document.getElementById('device-name') as HTMLInputElement | null;
+    if (deviceInput) {
+      deviceInput.value = state.deviceName;
+      deviceInput.addEventListener('change', () => {
+        state = Storage.setDeviceName(state, deviceInput.value);
+      });
+    }
+
     UI.on('btn-persist-storage', 'click', () => {
       void Storage.requestPersistence().then(renderPersistence);
     });
@@ -138,6 +146,12 @@ const SettingsApp = (() => {
       state = Storage.closeEvent(state, active.id);
       renderActiveEvent();
       renderAllEvents();
+      const notice = document.getElementById('close-notice');
+      const link = document.getElementById('close-notice-stats') as HTMLAnchorElement | null;
+      if (notice && link) {
+        link.href = new URL(`stats/?id=${active.id}`, document.baseURI).href;
+        notice.hidden = false;
+      }
     });
   }
 

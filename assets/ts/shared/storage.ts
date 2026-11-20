@@ -1,4 +1,5 @@
 import type { Event, Item, Transaction } from './models';
+import { Models } from './models';
 
 const STORAGE_KEY = 'kassierer_app_v1';
 
@@ -6,6 +7,9 @@ const STORAGE_KEY = 'kassierer_app_v1';
 interface AppState {
   events: Event[];
   activeEventId: string | null;
+  // Identifies this device's sales when several devices' sales are merged.
+  deviceId: string;
+  deviceName: string;
 }
 
 // ─── Default state ───────────────────────────────────────────────────
@@ -13,7 +17,48 @@ function defaultState(): AppState {
   return {
     events: [],
     activeEventId: null,
+    deviceId: Models.generateId(),
+    deviceName: '',
   };
+}
+
+// ─── Migration ────────────────────────────────────────────────────────
+// Older data lacks device and transaction ids. Fill them in once and save, so ids
+// stay stable: exported sales are deduplicated by transaction id.
+function migrateEvent(event: Event, deviceId: string): { event: Event; changed: boolean } {
+  let changed = !Array.isArray(event.importedItems) || !event.devices || typeof event.devices !== 'object';
+  const transactions = event.transactions.map((tx) => {
+    if (tx.id && tx.deviceId) return tx;
+    changed = true;
+    return { ...tx, id: tx.id || Models.generateId(), deviceId: tx.deviceId || deviceId };
+  });
+  if (!changed) return { event, changed };
+  return {
+    event: {
+      ...event,
+      transactions,
+      importedItems: Array.isArray(event.importedItems) ? event.importedItems : [],
+      devices: event.devices && typeof event.devices === 'object' ? event.devices : {},
+    },
+    changed,
+  };
+}
+
+function migrate(parsed: AppState): { state: AppState; changed: boolean } {
+  let changed = typeof parsed.deviceId !== 'string' || typeof parsed.deviceName !== 'string';
+  const deviceId = typeof parsed.deviceId === 'string' ? parsed.deviceId : Models.generateId();
+  const events = parsed.events.map((event) => {
+    const result = migrateEvent(event, deviceId);
+    changed = changed || result.changed;
+    return result.event;
+  });
+  const state: AppState = {
+    events,
+    activeEventId: parsed.activeEventId ?? null,
+    deviceId,
+    deviceName: typeof parsed.deviceName === 'string' ? parsed.deviceName : '',
+  };
+  return { state, changed };
 }
 
 // ─── Load / Save ──────────────────────────────────────────────────────
@@ -24,7 +69,9 @@ function loadState(): AppState {
     const parsed = JSON.parse(raw) as AppState;
     // Basic integrity check
     if (!parsed || !Array.isArray(parsed.events)) return defaultState();
-    return parsed;
+    const { state, changed } = migrate(parsed);
+    if (changed) saveState(state);
+    return state;
   } catch {
     return defaultState();
   }
@@ -80,6 +127,12 @@ function addTransaction(state: AppState, eventId: string, transaction: Transacti
   const updatedEvent: Event = { ...event };
   updatedEvent.transactions = [...event.transactions, transaction];
   return updateEvent(state, updatedEvent);
+}
+
+function setDeviceName(state: AppState, deviceName: string): AppState {
+  const newState: AppState = { ...state, deviceName: deviceName.trim() };
+  saveState(newState);
+  return newState;
 }
 
 // ─── Close event ──────────────────────────────────────────────────────
@@ -158,6 +211,7 @@ export const Storage = {
   updateEvent,
   setEventItems,
   addTransaction,
+  setDeviceName,
   closeEvent,
   deleteEvent,
   getPersistenceStatus,
