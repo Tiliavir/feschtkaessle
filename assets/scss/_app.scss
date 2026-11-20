@@ -969,3 +969,34 @@ html[data-direction="back"] {
 .share-section .export-row {
   flex-direction: column;
 }
+
+// ─── Price list paste (create page) ───────────────────────────────────────────
+.price-list {
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  margin: 1rem 0;
+  padding: 0.75rem;
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  &[open] summary {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.price-list-text {
+  font-family: inherit;
+  margin-bottom: 0.5rem;
+  resize: vertical;
+}
+
+.price-list-rejected ul {
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0.75rem 1.25rem;
+}
