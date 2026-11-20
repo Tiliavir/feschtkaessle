@@ -1,5 +1,5 @@
 import type { PersistenceStatus } from '../shared/index';
-import { Models, Storage, UI } from '../shared/index';
+import { EventConfigs, Models, Storage, UI } from '../shared/index';
 
 // ─── Settings Page ────────────────────────────────────────────────────────────
 const SettingsApp = (() => {
@@ -74,6 +74,11 @@ const SettingsApp = (() => {
       statsLink.href = new URL(`stats/?id=${event.id}`, document.baseURI).href;
       statsLink.textContent = 'Statistik';
 
+      const templateLink = document.createElement('a');
+      templateLink.className = 'all-event-link';
+      templateLink.href = EventConfigs.createLink(EventConfigs.fromEvent(event), document.baseURI);
+      templateLink.textContent = 'Als Vorlage';
+
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'all-event-delete';
       deleteBtn.textContent = 'Löschen';
@@ -92,6 +97,7 @@ const SettingsApp = (() => {
 
       actionsDiv.appendChild(editLink);
       actionsDiv.appendChild(statsLink);
+      actionsDiv.appendChild(templateLink);
       actionsDiv.appendChild(deleteBtn);
 
       row.appendChild(nameSpan);

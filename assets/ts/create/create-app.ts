@@ -1,5 +1,5 @@
-import type { Item } from '../shared/index';
-import { ItemEditor, Models, Storage, UI } from '../shared/index';
+import type { EventConfig, Item } from '../shared/index';
+import { EventConfigs, ItemEditor, Models, Storage, UI } from '../shared/index';
 
 // ─── Create Page ──────────────────────────────────────────────────────────────
 const CreateApp = (() => {
@@ -33,6 +33,27 @@ const CreateApp = (() => {
     editor.render();
     bindEvents();
     updateStartButton();
+    applyConfigFromHash();
+  }
+
+  // A share link or "use as template" opens this page with `#cfg=…`.
+  function applyConfigFromHash(): void {
+    const config = EventConfigs.fromHash(location.hash);
+    if (config === undefined) return;
+    history.replaceState(null, '', location.pathname + location.search);
+    if (config === null) {
+      UI.setText('config-notice', '');
+      UI.setText('import-error', 'Der Link enthält keine gültige Konfiguration.');
+      return;
+    }
+    applyConfig(config);
+    UI.setText('config-notice', 'Name und Artikel wurden übernommen. Bitte prüfen und die Veranstaltung starten.');
+  }
+
+  function applyConfig(config: EventConfig): void {
+    const nameInput = document.getElementById('event-name') as HTMLInputElement;
+    if (nameInput) nameInput.value = config.name;
+    replaceItems(EventConfigs.toItems(config));
   }
 
   function replaceItems(items: Item[]): void {
@@ -100,23 +121,19 @@ const CreateApp = (() => {
   }
 
   async function importFile(file: File): Promise<void> {
-    const errorEl = document.getElementById('import-error');
+    let config: EventConfig | null = null;
     try {
-      const data = JSON.parse(await file.text());
-      if (!data || typeof data.name !== 'string' || !Array.isArray(data.items)) {
-        throw new Error('Ungültiges Format');
-      }
-      const nameInput = document.getElementById('event-name') as HTMLInputElement;
-      if (nameInput) nameInput.value = data.name;
-      replaceItems(
-        data.items.map((it: Record<string, unknown>) =>
-          Models.createItem((it.name as string) || '', (it.price as number) || 0, (it.color as string) || '#cccccc'),
-        ),
-      );
-      if (errorEl) errorEl.textContent = '';
+      config = EventConfigs.parse(JSON.parse(await file.text()));
     } catch {
-      if (errorEl) errorEl.textContent = 'Fehler beim Importieren: Ungültiges JSON-Format.';
+      config = null;
     }
+    if (!config) {
+      UI.setText('config-notice', '');
+      UI.setText('import-error', 'Fehler beim Importieren: Ungültiges JSON-Format.');
+      return;
+    }
+    applyConfig(config);
+    UI.setText('import-error', '');
   }
 
   return { init };

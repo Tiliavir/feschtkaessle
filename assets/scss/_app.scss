@@ -718,7 +718,9 @@ html[data-direction="back"] {
 
 .all-event-actions {
   display: flex;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  grid-column: 1 / -1;
   justify-content: flex-end;
 }
 
@@ -869,6 +871,7 @@ html[data-direction="back"] {
 // ─── Export button row ────────────────────────────────────────────────────────
 .export-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   justify-content: flex-end;
   margin-top: 0.5rem;
@@ -948,4 +951,21 @@ html[data-direction="back"] {
 .storage-status {
   font-size: 0.9rem;
   margin-bottom: 0.75rem;
+}
+
+// ─── Info texts ───────────────────────────────────────────────────────────────
+.info-text {
+  color: $color-green;
+  font-size: 0.85rem;
+  min-height: 1.2em;
+}
+
+.section-hint {
+  color: $color-muted;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.share-section .export-row {
+  flex-direction: column;
 }
