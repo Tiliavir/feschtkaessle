@@ -62,7 +62,7 @@ function encode(config: EventConfig): string {
   const bytes = new TextEncoder().encode(JSON.stringify(config));
   let binary = '';
   for (const byte of bytes) binary += String.fromCodePoint(byte);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 function decode(encoded: string): EventConfig | null {
