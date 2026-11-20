@@ -71,11 +71,11 @@ export function stubStoragePersistence(granted: boolean) {
   Object.defineProperty(navigator, 'storage', {
     configurable: true,
     value: {
-      persisted: async () => persisted,
-      persist: async () => {
+      persisted: () => Promise.resolve(persisted),
+      persist: () => {
         sessionStorage.setItem('persist-calls', String(Number(sessionStorage.getItem('persist-calls') ?? 0) + 1));
         persisted = granted;
-        return granted;
+        return Promise.resolve(granted);
       },
     },
   });
