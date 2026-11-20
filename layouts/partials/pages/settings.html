@@ -39,6 +39,27 @@
     <input id="device-name" type="text" class="text-input" placeholder="z.B. Kasse Grill" autocomplete="off">
   </section>
 
+  <section class="settings-section vision-settings">
+    <h2 class="section-title">Preisliste per Foto (optional)</h2>
+    <p class="section-hint">
+      Mit eigenem API-Schlüssel liest die App ein Foto der Preistafel direkt aus. Schlüssel und Foto gehen nur an
+      den gewählten Anbieter, der Schlüssel bleibt auf diesem Gerät. Die Kosten trägt der Schlüssel-Inhaber.
+    </p>
+    <label for="vision-provider" class="field-label">Anbieter</label>
+    <select id="vision-provider" class="text-input">
+      <option value="">Aus</option>
+      <option value="anthropic">Anthropic (Claude)</option>
+      <option value="openai">OpenAI</option>
+    </select>
+    <div id="vision-details" hidden>
+      <label for="vision-key" class="field-label">API-Schlüssel</label>
+      <input id="vision-key" type="password" class="text-input" autocomplete="off" spellcheck="false">
+      <label for="vision-model" class="field-label">Modell</label>
+      <input id="vision-model" type="text" class="text-input" autocomplete="off" spellcheck="false">
+    </div>
+    <p id="vision-status" class="info-text" aria-live="polite"></p>
+  </section>
+
   <section class="settings-section">
     <h2 class="section-title">Datenspeicher</h2>
     <p id="storage-status" class="storage-status" aria-live="polite">Wird geprüft …</p>

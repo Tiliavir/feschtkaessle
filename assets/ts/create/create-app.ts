@@ -1,5 +1,5 @@
 import type { EventConfig, Item, RejectedLine } from '../shared/index';
-import { EventConfigs, ItemEditor, Models, PriceList, Storage, UI } from '../shared/index';
+import { EventConfigs, ItemEditor, Models, PriceList, Storage, UI, Vision, VisionError } from '../shared/index';
 
 // ─── Create Page ──────────────────────────────────────────────────────────────
 const CreateApp = (() => {
@@ -94,6 +94,7 @@ const CreateApp = (() => {
       });
     }
 
+    bindPhotoImport();
     UI.on('btn-price-list-apply', 'click', applyPriceList);
     UI.on('btn-copy-prompt', 'click', () => {
       void copyPrompt();
@@ -150,6 +151,48 @@ const CreateApp = (() => {
       }),
     );
     box.hidden = rejected.length === 0;
+  }
+
+  function bindPhotoImport(): void {
+    const configured = Vision.isConfigured(Vision.loadSettings());
+    const box = document.getElementById('photo-import');
+    const hint = document.getElementById('photo-setup-hint');
+    if (box) box.hidden = !configured;
+    if (hint) hint.hidden = configured;
+    if (!configured) return;
+
+    UI.on('btn-photo', 'click', () => {
+      (document.getElementById('photo-file') as HTMLInputElement | null)?.click();
+    });
+    const fileInput = document.getElementById('photo-file') as HTMLInputElement | null;
+    fileInput?.addEventListener('change', () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+      void readPhoto(file).finally(() => {
+        fileInput.value = '';
+      });
+    });
+  }
+
+  // The recognised lines go into the text field, so they are reviewed before "Artikel übernehmen".
+  async function readPhoto(file: File): Promise<void> {
+    const button = document.getElementById('btn-photo') as HTMLButtonElement | null;
+    const textarea = document.getElementById('price-list-text') as HTMLTextAreaElement | null;
+    const prompt = document.getElementById('price-list-prompt') as HTMLTextAreaElement | null;
+    if (!textarea || !prompt) return;
+    UI.setText('photo-error', '');
+    UI.setText('photo-status', 'Foto wird ausgelesen …');
+    if (button) button.disabled = true;
+    try {
+      const text = await Vision.readPriceList(file, Vision.loadSettings(), prompt.value);
+      textarea.value = [textarea.value.trim(), text].filter(Boolean).join('\n');
+      UI.setText('photo-status', 'Erkannt. Bitte prüfen und „Artikel übernehmen" tippen.');
+    } catch (e) {
+      UI.setText('photo-status', '');
+      UI.setText('photo-error', e instanceof VisionError ? e.message : 'Das Foto konnte nicht ausgelesen werden.');
+    } finally {
+      if (button) button.disabled = false;
+    }
   }
 
   async function copyPrompt(): Promise<void> {

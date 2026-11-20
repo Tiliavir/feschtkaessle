@@ -1011,3 +1011,12 @@ html[data-direction="back"] {
 .close-notice {
   margin: 0;
 }
+
+// ─── Photo import ─────────────────────────────────────────────────────────────
+.photo-import {
+  margin: 0.75rem 0;
+}
+
+.vision-settings select.text-input {
+  background: $color-white;
+}
