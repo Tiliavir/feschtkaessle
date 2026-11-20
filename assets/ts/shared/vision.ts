@@ -147,7 +147,8 @@ function errorMessage(status: number, body: unknown): string {
   if (status === 401 || status === 403) return 'Der API-Schlüssel wurde abgelehnt. Bitte in den Einstellungen prüfen.';
   if (status === 429) return 'Zu viele Anfragen oder kein Guthaben beim Anbieter. Später erneut versuchen.';
   const detail = (body as { error?: { message?: unknown } } | null)?.error?.message;
-  return `Fehler beim Anbieter (HTTP ${status})${typeof detail === 'string' ? `: ${detail}` : ''}.`;
+  const suffix = typeof detail === 'string' ? `: ${detail}` : '';
+  return `Fehler beim Anbieter (HTTP ${status})${suffix}.`;
 }
 
 // Returns the recognised price list as text (one item per line) for the user to review.

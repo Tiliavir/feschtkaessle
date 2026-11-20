@@ -54,3 +54,31 @@ test('create copies the prompt for an AI app', async ({ page, context }) => {
   await expect(page.locator('#prompt-status')).toHaveText('Auftrag kopiert.');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Preisliste auf dem Foto');
 });
+
+test('price list parser handles currencies, brackets and signs', async ({ page }) => {
+  await page.goto('/create/');
+  await page.click('#price-list summary');
+  await page.fill(
+    '#price-list-text',
+    ['Wein 3,5 EUR', 'Kuchen (2,50)', 'Cola 0,33 l 2.50€', 'Pfand zurück −2', '• Brezel 1 Fr.', 'Bier4', '12345'].join(
+      '\n',
+    ),
+  );
+  await page.click('#btn-price-list-apply');
+
+  await expect(page.locator('#setup-items-list .setup-item-name')).toHaveText([
+    'Wein',
+    'Kuchen',
+    'Cola 0,33 l',
+    'Pfand zurück',
+    'Brezel',
+  ]);
+  await expect(page.locator('#setup-items-list .setup-item-price')).toHaveText([
+    '3,50 €',
+    '2,50 €',
+    '2,50 €',
+    '-2,00 €',
+    '1,00 €',
+  ]);
+  await expect(page.locator('#price-list-text')).toHaveValue('Bier4\n12345');
+});
