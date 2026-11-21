@@ -11,7 +11,7 @@ The app is a **Multi-Page Application (MPA)** built with [Hugo](https://gohugo.i
 | Page | Layout | Purpose |
 |---|---|---|
 | Cashier | `layouts/index.html` | Main cash register: item grid, transaction recording |
-| Create event | `layouts/create/list.html` | New event setup: name, item list, import/export, liability checkbox |
+| Create event | `layouts/partials/pages/create.html` | Start screen (cards: photo, template file, example, manual) → setup screen (name, items, liability) |
 | Edit event | `layouts/edit/list.html` | Edit items of an existing event |
 | Settings | `layouts/settings/list.html` | Overview of active event, all events list |
 | Statistics | `layouts/stats/list.html` | Revenue, items sold, transaction chart |
@@ -26,6 +26,7 @@ The app is a **Multi-Page Application (MPA)** built with [Hugo](https://gohugo.i
 - **`assets/ts/shared/item-editor.ts`** — The item list of the create and edit pages (add form, inline edit, remove, reorder). Each page passes an `ItemStore` (`getItems`/`setItems`): create keeps items in memory, edit writes them via `Storage.setEventItems`. Exports `ItemEditor` namespace.
 - **`assets/ts/shared/config.ts`** — Shareable event config `{ name, items }`: validation, JSON file export/import, share link `create/#cfg=<base64url JSON>` (also used for "Als Vorlage"). Exports `EventConfigs` namespace.
 - **`assets/ts/shared/price-list.ts`** — Parser for pasted price lists (one item per line, last number = price; unclear lines are returned, not dropped). Exports `PriceList` namespace.
+- **`assets/ts/shared/vision.ts`** — Photo → price list via OpenRouter: connect with OAuth PKCE (no app registration; verifier + state in `sessionStorage`, callback `?code=&state=` on the calling page), key in `feschtkaessle_vision_v1` (`{ provider: "openrouter", apiKey }`; keys of the former direct providers are dropped on load), model `openrouter/free` (routes to a free model that takes images). Exports `Vision` namespace.
 - **`assets/ts/shared/sales.ts`** — Sales export (JSON, `type: "feschtkaessle-sales"`, version 1) for merging devices, merge (dedupe by transaction id, items matched by name + price), CSV statement (`;`, decimal comma, UTF-8 BOM). Exports `Sales` namespace.
 - **`assets/ts/shared/index.ts`** — Re-exports all shared modules.
 
