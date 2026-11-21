@@ -3,7 +3,7 @@
 // not part of the app state) and is only sent to the chosen provider, with the photo.
 type VisionProvider = 'anthropic' | 'openai' | 'gemini';
 
-const PROVIDERS: VisionProvider[] = ['anthropic', 'openai', 'gemini'];
+const PROVIDERS = new Set<unknown>(['anthropic', 'openai', 'gemini']);
 
 interface VisionSettings {
   provider: VisionProvider | null;
@@ -27,7 +27,7 @@ function defaultSettings(): VisionSettings {
 function loadSettings(): VisionSettings {
   try {
     const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? 'null') as Partial<VisionSettings> | null;
-    if (!raw || !PROVIDERS.includes(raw.provider as VisionProvider)) return defaultSettings();
+    if (!raw || !PROVIDERS.has(raw.provider)) return defaultSettings();
     return {
       provider: raw.provider as VisionProvider,
       apiKey: typeof raw.apiKey === 'string' ? raw.apiKey : '',
