@@ -1,12 +1,19 @@
-import type { Event, ItemSoldInfo, Transaction } from '../shared/index';
-import { Models, Storage, UI } from '../shared/index';
+import type { AppState, Event, ItemSoldInfo, Transaction } from '../shared/index';
+import { Models, Sales, Storage, UI } from '../shared/index';
 
 // ─── Stats Page ───────────────────────────────────────────────────────────────
 const StatsApp = (() => {
+  let state: AppState = Storage.loadState();
+  let eventId: string | null = null;
+
+  function currentEvent(): Event | null {
+    return state.events.find((e) => e.id === eventId) || null;
+  }
+
   function init(): void {
-    const eventId = new URLSearchParams(location.search).get('id');
-    const state = Storage.loadState();
-    const event = state.events.find((e) => e.id === eventId);
+    eventId = new URLSearchParams(location.search).get('id');
+    state = Storage.loadState();
+    const event = currentEvent();
 
     if (!event) {
       const errEl = document.getElementById('stats-error');
@@ -20,20 +27,111 @@ const StatsApp = (() => {
     const titleEl = document.getElementById('stats-event-name');
     if (titleEl) titleEl.textContent = `${event.name} - ${UI.formatDate(event.createdAt)}`;
 
+    render(event);
+    bindEvents();
+  }
+
+  function render(event: Event): void {
     renderStatCards(event);
     renderItemsTable(event);
+    renderDevicesTable(event);
     renderCharts(event);
+  }
 
+  function bindEvents(): void {
     UI.on('btn-back-settings', 'click', () => {
       sessionStorage.setItem('vt-direction', 'back');
       const href = (document.getElementById('btn-back-settings') as HTMLElement).dataset.href;
       if (href) location.href = href;
     });
+
+    UI.on('btn-export-csv', 'click', () => {
+      const event = currentEvent();
+      if (!event) return;
+      // BOM so Excel reads the file as UTF-8 (umlauts).
+      void UI.shareOrDownloadFile(
+        `${Sales.fileBaseName(event)}.csv`,
+        'text/csv',
+        `\uFEFF${Sales.buildCsv(state, event)}`,
+      );
+    });
+
+    UI.on('btn-export-sales', 'click', () => {
+      const event = currentEvent();
+      if (!event) return;
+      void UI.shareOrDownloadFile(
+        `${Sales.fileBaseName(event)}_verkaeufe.json`,
+        'application/json',
+        JSON.stringify(Sales.buildExport(state, event), null, 2),
+      );
+    });
+
+    UI.on('btn-import-sales', 'click', () => {
+      (document.getElementById('import-sales-file') as HTMLInputElement | null)?.click();
+    });
+
+    const fileInput = document.getElementById('import-sales-file') as HTMLInputElement | null;
+    fileInput?.addEventListener('change', () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+      void importSales(file).finally(() => {
+        fileInput.value = '';
+      });
+    });
+  }
+
+  async function importSales(file: File): Promise<void> {
+    const event = currentEvent();
+    if (!event) return;
+    UI.setText('sales-status', '');
+    UI.setText('sales-error', '');
+    let data: ReturnType<typeof Sales.parseExport> = null;
+    try {
+      data = Sales.parseExport(JSON.parse(await file.text()));
+    } catch {
+      data = null;
+    }
+    if (!data) {
+      UI.setText('sales-error', 'Die Datei ist kein Verkaufs-Export dieser App.');
+      return;
+    }
+    if (
+      data.event.name !== event.name &&
+      !confirm(`Die Verkäufe gehören zu „${data.event.name}". Trotzdem zu „${event.name}" hinzufügen?`)
+    ) {
+      return;
+    }
+    const result = Sales.merge(state, event, data);
+    state = Storage.updateEvent(state, result.event);
+    render(result.event);
+    const skipped = result.skipped > 0 ? `, ${result.skipped} waren schon vorhanden` : '';
+    UI.setText('sales-status', `${result.added} Transaktionen übernommen${skipped}.`);
+  }
+
+  function renderDevicesTable(event: Event): void {
+    const tbody = document.getElementById('devices-table-body');
+    if (!tbody) return;
+    tbody.replaceChildren(
+      ...Models.calculateDeviceTotals(event).map((device) => {
+        const tr = document.createElement('tr');
+        for (const text of [
+          Sales.deviceLabel(state, event, device.deviceId),
+          String(device.transactionCount),
+          UI.formatCurrency(device.revenue),
+        ]) {
+          const td = document.createElement('td');
+          td.textContent = text;
+          tr.appendChild(td);
+        }
+        return tr;
+      }),
+    );
   }
 
   function renderStatCards(event: Event): void {
     const container = document.getElementById('stat-cards');
     if (!container) return;
+    container.replaceChildren();
     const totals = Models.calculateEventTotals(event);
 
     const cards = [
@@ -59,6 +157,7 @@ const StatsApp = (() => {
   function renderItemsTable(event: Event): void {
     const tbody = document.getElementById('items-table-body');
     if (!tbody) return;
+    tbody.replaceChildren();
     const sold = Models.calculateItemsSold(event);
 
     const entries = Object.values(sold).sort((a: ItemSoldInfo, b: ItemSoldInfo) => b.quantity - a.quantity);

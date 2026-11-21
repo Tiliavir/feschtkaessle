@@ -19,6 +19,10 @@ interface Event {
   items: Item[];
   transactions: Transaction[];
   closed: boolean;
+  // Items sold on other devices that don't match an own item (name + price), for statistics only.
+  importedItems: Item[];
+  // Names of other devices whose sales were merged into this event, by device id.
+  devices: Record<string, string>;
 }
 
 interface Item {
@@ -29,6 +33,8 @@ interface Item {
 }
 
 interface Transaction {
+  id: string;
+  deviceId: string;
   timestamp: string;
   items: { itemId: string; quantity: number }[];
   total: number;
@@ -45,6 +51,8 @@ function createEvent(name: string): Event {
     items: [],
     transactions: [],
     closed: false,
+    importedItems: [],
+    devices: {},
   };
 }
 
@@ -59,12 +67,15 @@ function createItem(name: string, price: number | string, color: string): Item {
 }
 
 function createTransaction(
+  deviceId: string,
   items: { itemId: string; quantity: number }[],
   total: number,
   received: number,
   change: number,
 ): Transaction {
   return {
+    id: generateId(),
+    deviceId,
     timestamp: new Date().toISOString(),
     items: items,
     total: total,
@@ -131,7 +142,7 @@ interface ItemSoldInfo {
 
 function calculateItemsSold(event: Event): Record<string, ItemSoldInfo> {
   const sold: Record<string, ItemSoldInfo> = {};
-  const itemsMap = buildItemsMap(event.items);
+  const itemsMap = buildItemsMap([...event.items, ...event.importedItems]);
   for (const tx of event.transactions) {
     for (const txItem of tx.items) {
       const item = itemsMap[txItem.itemId];
@@ -145,6 +156,24 @@ function calculateItemsSold(event: Event): Record<string, ItemSoldInfo> {
     }
   }
   return sold;
+}
+
+interface DeviceTotals {
+  deviceId: string;
+  revenue: number;
+  transactionCount: number;
+}
+
+// Sorted by revenue, highest first.
+function calculateDeviceTotals(event: Event): DeviceTotals[] {
+  const totals: Record<string, DeviceTotals> = {};
+  for (const tx of event.transactions) {
+    const entry = totals[tx.deviceId] ?? { deviceId: tx.deviceId, revenue: 0, transactionCount: 0 };
+    entry.revenue = Math.round((entry.revenue + tx.total) * 100) / 100;
+    entry.transactionCount += 1;
+    totals[tx.deviceId] = entry;
+  }
+  return Object.values(totals).sort((a, b) => b.revenue - a.revenue);
 }
 
 function moveItem(items: Item[], srcId: string, dstId: string): Item[] {
@@ -168,7 +197,8 @@ export const Models = {
   buildItemsMap,
   calculateEventTotals,
   calculateItemsSold,
+  calculateDeviceTotals,
   moveItem,
 };
 
-export type { Event, EventTotals, Item, ItemSoldInfo, Transaction };
+export type { DeviceTotals, Event, EventTotals, Item, ItemSoldInfo, Transaction };

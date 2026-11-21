@@ -24,6 +24,38 @@
     </table>
   </section>
   <section class="stats-section">
+    <h2 class="section-title">Nach Gerät</h2>
+    <table class="items-table" id="devices-table">
+      <thead>
+        <tr>
+          <th>Gerät</th>
+          <th>Transaktionen</th>
+          <th>Umsatz</th>
+        </tr>
+      </thead>
+      <tbody id="devices-table-body"></tbody>
+    </table>
+  </section>
+  <section class="stats-section sales-actions">
+    <h2 class="section-title">Abrechnung</h2>
+    <p class="section-hint">
+      Kassieren mehrere Geräte? Jedes exportiert seine Verkäufe, ein Gerät importiert alle,
+      dann stimmt hier die Gesamtsumme.
+    </p>
+    <button id="btn-export-csv" class="btn btn-primary btn-full">Abrechnung als Tabelle (CSV)</button>
+    <button id="btn-export-sales" class="btn btn-secondary btn-full">Verkäufe für anderes Gerät exportieren</button>
+    <button id="btn-import-sales" class="btn btn-secondary btn-full">Verkäufe eines anderen Geräts importieren</button>
+    <input
+      id="import-sales-file"
+      type="file"
+      accept=".json,application/json"
+      class="visually-hidden"
+      aria-label="Verkäufe importieren"
+    >
+    <p id="sales-status" class="info-text" aria-live="polite"></p>
+    <p id="sales-error" class="error-text" aria-live="polite"></p>
+  </section>
+  <section class="stats-section">
     <h2 class="section-title">Transaktionen über Zeit</h2>
     <div class="chart-container" id="stats-chart-count"></div>
   </section>

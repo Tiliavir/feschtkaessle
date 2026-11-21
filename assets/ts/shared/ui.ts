@@ -308,7 +308,35 @@ function bindSetupItemsDragDrop(container: HTMLElement, onReorder: (srcId: strin
   });
 }
 
+// ─── File output ─────────────────────────────────────────────────────
+function downloadFile(fileName: string, type: string, content: string): void {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Share sheet with the file where supported (Android: messenger, mail, Drive), else download.
+// Returns false if the user cancelled the share sheet.
+async function shareOrDownloadFile(fileName: string, type: string, content: string): Promise<boolean> {
+  const file = new File([content], fileName, { type });
+  if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: fileName });
+      return true;
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return false;
+    }
+  }
+  downloadFile(fileName, type, content);
+  return true;
+}
+
 export const UI = {
+  downloadFile,
+  shareOrDownloadFile,
   formatCurrency,
   formatDate,
   showScreen,
