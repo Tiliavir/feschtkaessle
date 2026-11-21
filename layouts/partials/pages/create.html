@@ -59,8 +59,17 @@
         <p class="error-text">Diese Zeilen wurden nicht übernommen:</p>
         <ul id="price-list-rejected-lines"></ul>
       </div>
+      <div id="photo-import" class="photo-import" hidden>
+        <button id="btn-photo" class="btn btn-secondary btn-full">Foto der Preistafel auslesen</button>
+        <input id="photo-file" type="file" accept="image/*" class="visually-hidden" aria-label="Foto auswählen">
+        <p id="photo-status" class="info-text" aria-live="polite"></p>
+        <p id="photo-error" class="error-text" aria-live="polite"></p>
+      </div>
+      <p id="photo-setup-hint" class="section-hint">
+        Fotos direkt auslesen: KI-Anbieter unter <a href="settings/">Einstellungen</a> einrichten.
+      </p>
       <p class="section-hint">
-        Foto der Preistafel? Kopiere diesen Auftrag in eine KI-App (z.&nbsp;B. Claude, ChatGPT, Gemini),
+        Ohne eigenen Schlüssel: Kopiere diesen Auftrag in eine KI-App (z.&nbsp;B. Claude, ChatGPT, Gemini),
         hänge das Foto an und füge die Antwort oben ein.
       </p>
       <label for="price-list-prompt" class="field-label">Auftrag für die KI-App</label>
