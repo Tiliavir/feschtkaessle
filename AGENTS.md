@@ -79,6 +79,7 @@ Single key `feschtkaessle_app_v1` storing:
 - `deviceId` identifies this device's transactions when sales of several devices are merged; `deviceName` is its label in the statement.
 - `importedItems`: items from merged sales that match no own item (name + price); used for statistics only, not shown at the cashier.
 - `devices`: names of other devices whose sales were merged.
+- Reset all app data (browser console): `localStorage.removeItem('feschtkaessle_app_v1'); location.reload();`
 - `Storage.loadState()` moves data from the legacy key `kassierer_app_v1` (≤ 0.x) and migrates older data (adds ids, `deviceId`, empty `importedItems`/`devices`) and saves it once, so transaction ids stay stable.
 
 ## Build Commands
