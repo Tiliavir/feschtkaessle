@@ -2,6 +2,7 @@ import type { EventConfig, Item, RejectedLine } from '../shared/index';
 import { EventConfigs, ItemEditor, Models, PriceList, Storage, UI, Vision, VisionError } from '../shared/index';
 
 // ─── Create Page ──────────────────────────────────────────────────────────────
+// Start screen (how to start: photo, template, example, manual) → setup screen (review, start).
 const CreateApp = (() => {
   let pendingItems: Item[] = [];
   let editor: ReturnType<typeof ItemEditor.bind> | null = null;
@@ -33,21 +34,38 @@ const CreateApp = (() => {
     editor.render();
     bindEvents();
     updateStartButton();
-    applyConfigFromHash();
+    if (applyConfigFromHash()) return;
+    showScreen('start');
+    void handleConnectCallback();
+  }
+
+  // ─── Screens ────────────────────────────────────────────────────────────────
+  function showScreen(screen: 'start' | 'setup'): void {
+    const start = document.getElementById('start-screen');
+    const setup = document.getElementById('setup-screen');
+    if (start) start.hidden = screen !== 'start';
+    if (setup) setup.hidden = screen !== 'setup';
+    window.scrollTo(0, 0);
+  }
+
+  function showSetup(notice: string): void {
+    UI.setText('config-notice', notice);
+    showScreen('setup');
   }
 
   // A share link or "use as template" opens this page with `#cfg=…`.
-  function applyConfigFromHash(): void {
+  function applyConfigFromHash(): boolean {
     const config = EventConfigs.fromHash(location.hash);
-    if (config === undefined) return;
+    if (config === undefined) return false;
     history.replaceState(null, '', location.pathname + location.search);
     if (config === null) {
-      UI.setText('config-notice', '');
+      showScreen('start');
       UI.setText('import-error', 'Der Link enthält keine gültige Konfiguration.');
-      return;
+      return true;
     }
     applyConfig(config);
-    UI.setText('config-notice', 'Name und Artikel wurden übernommen. Bitte prüfen und die Veranstaltung starten.');
+    showSetup('Name und Artikel wurden übernommen. Bitte prüfen und die Kasse öffnen.');
+    return true;
   }
 
   function applyConfig(config: EventConfig): void {
@@ -69,18 +87,24 @@ const CreateApp = (() => {
 
   function bindEvents(): void {
     UI.on('accept-liability', 'change', updateStartButton);
+    UI.on('btn-restart', 'click', () => showScreen('start'));
 
-    UI.on('btn-example-config', 'click', () => {
+    UI.on('start-manual', 'click', () => {
+      showSetup('');
+      (document.getElementById('event-name') as HTMLInputElement | null)?.focus();
+    });
+
+    UI.on('start-example', 'click', () => {
       const nameInput = document.getElementById('event-name') as HTMLInputElement;
       if (nameInput && !nameInput.value.trim()) {
         nameInput.value = 'Vereinsfest';
       }
       replaceItems(EXAMPLE_ITEMS.map((cfg) => Models.createItem(cfg.name, cfg.price, cfg.color)));
+      showSetup('Beispiel geladen – passe es an euer Fest an.');
     });
 
-    UI.on('btn-import', 'click', () => {
-      const fileInput = document.getElementById('import-file') as HTMLInputElement;
-      if (fileInput) fileInput.click();
+    UI.on('start-template', 'click', () => {
+      (document.getElementById('import-file') as HTMLInputElement | null)?.click();
     });
 
     const fileInput = document.getElementById('import-file') as HTMLInputElement;
@@ -95,10 +119,8 @@ const CreateApp = (() => {
     }
 
     bindPhotoImport();
+    bindAppImport();
     UI.on('btn-price-list-apply', 'click', applyPriceList);
-    UI.on('btn-copy-prompt', 'click', () => {
-      void copyPrompt();
-    });
 
     UI.on('btn-start-event', 'click', () => {
       const nameInput = document.getElementById('event-name') as HTMLInputElement;
@@ -126,17 +148,27 @@ const CreateApp = (() => {
     });
   }
 
+  // ─── Price list text ────────────────────────────────────────────────────────
   // Appends the parsed items, so a long list can be pasted in parts.
   function applyPriceList(): void {
     const textarea = document.getElementById('price-list-text') as HTMLTextAreaElement | null;
     if (!textarea) return;
-    const result = PriceList.parse(textarea.value);
+    const count = applyText(textarea.value);
+    UI.setText('price-list-result', `${count} Artikel übernommen.`);
+  }
+
+  // Adds the recognised items; unclear lines stay in the text field with the reason.
+  function applyText(text: string): number {
+    const result = PriceList.parse(text);
     if (result.items.length > 0) {
       replaceItems([...pendingItems, ...EventConfigs.toItems({ name: '', items: result.items })]);
     }
-    UI.setText('price-list-result', `${result.items.length} Artikel übernommen.`);
+    const textarea = document.getElementById('price-list-text') as HTMLTextAreaElement | null;
+    if (textarea) textarea.value = result.rejected.map((r) => r.text).join('\n');
     renderRejected(result.rejected);
-    textarea.value = result.rejected.map((r) => r.text).join('\n');
+    const details = document.getElementById('price-list') as HTMLDetailsElement | null;
+    if (details && result.rejected.length > 0) details.open = true;
+    return result.items.length;
   }
 
   function renderRejected(rejected: RejectedLine[]): void {
@@ -153,13 +185,39 @@ const CreateApp = (() => {
     box.hidden = rejected.length === 0;
   }
 
+  function applyRecognised(text: string, source: string): void {
+    const count = applyText(text);
+    showSetup(`${count} Artikel ${source} übernommen. Bitte Namen und Preise prüfen.`);
+  }
+
+  // ─── Photo via OpenRouter ───────────────────────────────────────────────────
+  function renderConnection(): void {
+    const connected = Vision.isConnected();
+    const connect = document.getElementById('photo-connect');
+    const ready = document.getElementById('photo-ready');
+    if (connect) connect.hidden = connected;
+    if (ready) ready.hidden = !connected;
+  }
+
+  function openPhotoPanel(): void {
+    const panel = document.getElementById('photo-panel');
+    if (panel) panel.hidden = false;
+    renderConnection();
+  }
+
   function bindPhotoImport(): void {
-    const configured = Vision.isConfigured(Vision.loadSettings());
-    const box = document.getElementById('photo-import');
-    const hint = document.getElementById('photo-setup-hint');
-    if (box) box.hidden = !configured;
-    if (hint) hint.hidden = configured;
-    if (!configured) return;
+    UI.on('start-photo', 'click', () => {
+      openPhotoPanel();
+      if (Vision.isConnected()) {
+        (document.getElementById('photo-file') as HTMLInputElement | null)?.click();
+      } else {
+        document.getElementById('photo-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    UI.on('btn-connect', 'click', () => {
+      void connect();
+    });
 
     UI.on('btn-photo', 'click', () => {
       (document.getElementById('photo-file') as HTMLInputElement | null)?.click();
@@ -174,24 +232,100 @@ const CreateApp = (() => {
     });
   }
 
-  // The recognised lines go into the text field, so they are reviewed before "Artikel übernehmen".
+  async function connect(): Promise<void> {
+    UI.setText('photo-error', '');
+    try {
+      location.assign(await Vision.startConnect(location.origin + location.pathname));
+    } catch (e) {
+      UI.setText('photo-error', e instanceof VisionError ? e.message : 'Verbinden ist fehlgeschlagen.');
+    }
+  }
+
+  // OpenRouter redirects back to this page with `?code=…&state=…`.
+  async function handleConnectCallback(): Promise<void> {
+    const search = location.search;
+    if (!new URLSearchParams(search).has('code')) return;
+    history.replaceState(null, '', location.pathname);
+    openPhotoPanel();
+    try {
+      await Vision.completeConnect(search);
+      renderConnection();
+      UI.setText('photo-connected', 'Verbunden. Du kannst jetzt Fotos auslesen lassen.');
+    } catch (e) {
+      UI.setText('photo-error', e instanceof VisionError ? e.message : 'Verbinden ist fehlgeschlagen.');
+    }
+  }
+
   async function readPhoto(file: File): Promise<void> {
     const button = document.getElementById('btn-photo') as HTMLButtonElement | null;
-    const textarea = document.getElementById('price-list-text') as HTMLTextAreaElement | null;
     const prompt = document.getElementById('price-list-prompt') as HTMLTextAreaElement | null;
-    if (!textarea || !prompt) return;
+    if (!prompt) return;
     UI.setText('photo-error', '');
-    UI.setText('photo-status', 'Foto wird ausgelesen …');
+    UI.setText('photo-status', 'Foto wird ausgelesen … das dauert ein paar Sekunden.');
     if (button) button.disabled = true;
     try {
-      const text = await Vision.readPriceList(file, Vision.loadSettings(), prompt.value);
-      textarea.value = [textarea.value.trim(), text].filter(Boolean).join('\n');
-      UI.setText('photo-status', 'Erkannt. Bitte prüfen und „Artikel übernehmen" tippen.');
+      const text = await Vision.readPriceList(file, prompt.value);
+      UI.setText('photo-status', '');
+      applyRecognised(text, 'vom Foto');
     } catch (e) {
       UI.setText('photo-status', '');
       UI.setText('photo-error', e instanceof VisionError ? e.message : 'Das Foto konnte nicht ausgelesen werden.');
+      if (e instanceof VisionError && !Vision.isConnected()) renderConnection();
     } finally {
       if (button) button.disabled = false;
+    }
+  }
+
+  // ─── Without account: a KI app on the phone ─────────────────────────────────
+  function bindAppImport(): void {
+    UI.on('btn-no-account', 'click', () => {
+      const box = document.getElementById('ki-app');
+      if (box) box.hidden = false;
+      const share = document.getElementById('btn-share-photo');
+      if (share) share.hidden = !canShareImages();
+      box?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    UI.on('btn-copy-prompt', 'click', () => {
+      void copyPrompt();
+    });
+    UI.on('btn-share-photo', 'click', () => {
+      (document.getElementById('share-file') as HTMLInputElement | null)?.click();
+    });
+    const shareInput = document.getElementById('share-file') as HTMLInputElement | null;
+    shareInput?.addEventListener('change', () => {
+      const file = shareInput.files?.[0];
+      if (!file) return;
+      void sharePhoto(file).finally(() => {
+        shareInput.value = '';
+      });
+    });
+    UI.on('btn-ki-apply', 'click', () => {
+      const answer = document.getElementById('ki-answer') as HTMLTextAreaElement | null;
+      if (!answer?.value.trim()) {
+        UI.setText('prompt-status', 'Bitte zuerst die Antwort der KI-App einfügen.');
+        return;
+      }
+      applyRecognised(answer.value, 'aus der KI-App');
+      answer.value = '';
+    });
+  }
+
+  function canShareImages(): boolean {
+    if (typeof navigator.canShare !== 'function') return false;
+    const probe = new File([new Uint8Array(1)], 'preisliste.jpg', { type: 'image/jpeg' });
+    return navigator.canShare({ files: [probe] });
+  }
+
+  // Some apps drop the text of a share, so the prompt is copied as well.
+  async function sharePhoto(file: File): Promise<void> {
+    const prompt = document.getElementById('price-list-prompt') as HTMLTextAreaElement | null;
+    if (!prompt) return;
+    await copyPrompt();
+    try {
+      await navigator.share({ files: [file], text: prompt.value });
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return;
+      UI.setText('prompt-status', 'Teilen hat nicht geklappt. Bitte das Foto in der KI-App selbst anhängen.');
     }
   }
 
@@ -207,6 +341,7 @@ const CreateApp = (() => {
     }
   }
 
+  // ─── Template file ──────────────────────────────────────────────────────────
   async function importFile(file: File): Promise<void> {
     let config: EventConfig | null = null;
     try {
@@ -215,12 +350,12 @@ const CreateApp = (() => {
       config = null;
     }
     if (!config) {
-      UI.setText('config-notice', '');
       UI.setText('import-error', 'Fehler beim Importieren: Ungültiges JSON-Format.');
       return;
     }
-    applyConfig(config);
     UI.setText('import-error', '');
+    applyConfig(config);
+    showSetup('Einrichtung übernommen. Bitte prüfen und die Kasse öffnen.');
   }
 
   return { init };

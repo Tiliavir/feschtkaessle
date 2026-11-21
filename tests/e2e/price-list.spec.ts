@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { openManualSetup } from './utils';
 
 test('create takes items from a pasted price list and keeps unclear lines', async ({ page }) => {
-  await page.goto('/create/');
+  await openManualSetup(page);
   await page.click('#price-list summary');
   await page.fill(
     '#price-list-text',
@@ -45,18 +46,8 @@ test('create takes items from a pasted price list and keeps unclear lines', asyn
   await expect(page.locator('#price-list-rejected')).toBeHidden();
 });
 
-test('create copies the prompt for an AI app', async ({ page, context }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await page.goto('/create/');
-  await page.click('#price-list summary');
-  await page.click('#btn-copy-prompt');
-
-  await expect(page.locator('#prompt-status')).toHaveText('Auftrag kopiert.');
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Preisliste auf dem Foto');
-});
-
 test('price list parser handles currencies, brackets and signs', async ({ page }) => {
-  await page.goto('/create/');
+  await openManualSetup(page);
   await page.click('#price-list summary');
   await page.fill(
     '#price-list-text',

@@ -657,13 +657,6 @@ html[data-direction="back"] {
   padding: 0.5rem 0.75rem;
 }
 
-// ─── Setup actions (create page) ──────────────────────────────────────────────
-.setup-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
 // ─── Import error text ────────────────────────────────────────────────────────
 .error-text {
   color: $color-danger;
@@ -1012,11 +1005,171 @@ html[data-direction="back"] {
   margin: 0;
 }
 
-// ─── Photo import ─────────────────────────────────────────────────────────────
-.photo-import {
-  margin: 0.75rem 0;
+// ─── Create page: start screen ────────────────────────────────────────────────
+.create-main,
+.create-screen:not([hidden]) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 }
 
-.vision-settings select.text-input {
+.start-hero {
+  background: $color-header-bg;
+  color: $color-white;
+  padding: 2rem 1.25rem 1.5rem;
+  flex-shrink: 0;
+
+  h1 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #d4d6e8;
+    line-height: 1.45;
+  }
+}
+
+.start-title {
+  font-size: 1.15rem;
+}
+
+.start-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.start-card {
+  align-items: flex-start;
   background: $color-white;
+  border: 2px solid transparent;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+  color: $color-text;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font: inherit;
+  gap: 0.4rem;
+  min-height: 9rem;
+  padding: 1rem 0.9rem;
+  text-align: left;
+  touch-action: manipulation;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $color-secondary;
+  }
+
+  strong {
+    font-size: 1rem;
+  }
+}
+
+.start-desc {
+  color: $color-muted;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.start-card-wide {
+  align-items: center;
+  flex-direction: row;
+  gap: 0.9rem;
+  grid-column: span 2;
+  min-height: 0;
+}
+
+#start-photo {
+  border-color: $color-green;
+}
+
+.start-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.start-icon {
+  background: #eef1f7;
+  border-radius: 10px;
+  fill: none;
+  flex-shrink: 0;
+  height: 44px;
+  padding: 10px;
+  stroke: $color-header-bg;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 44px;
+}
+
+.start-card .start-badge {
+  align-self: flex-start;
+  background: #e3f4ea;
+  border-radius: 999px;
+  color: #145a32;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+}
+
+.photo-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  > p:empty {
+    display: none;
+  }
+}
+
+.create-main .setup-main {
+  margin-inline: auto;
+  max-width: 40rem;
+  width: 100%;
+}
+
+.start-hero,
+.setup-footer {
+  padding-inline: max(1.25rem, calc((100% - 38rem) / 2));
+}
+
+.check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  list-style: none;
+
+  li::before {
+    color: $color-green;
+    content: "✓ ";
+    font-weight: 700;
+  }
+}
+
+.ki-app {
+  border-top: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 1rem;
+}
+
+.btn-ghost {
+  background: $color-white;
+  border: 1px solid #bbb;
+  color: $color-header-bg;
+}
+
+.setup-footer {
+  background: $color-white;
+  border-top: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
 }

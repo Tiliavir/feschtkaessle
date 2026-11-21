@@ -1,106 +1,151 @@
-<header class="app-header">
-  <h1>Neue Veranstaltung</h1>
-</header>
+<main class="create-main">
+<div id="start-screen" class="create-screen">
+  <header class="start-hero">
+    <h1>{{ site.Title }}</h1>
+    <p>{{ site.Params.description }}. Tippen statt rechnen – auch offline.</p>
+  </header>
 
-<main class="setup-main">
-  <section class="setup-section">
-    <h2 class="section-title">Veranstaltung</h2>
-    <label for="event-name" class="field-label">Veranstaltungsname</label>
-    <input
-      id="event-name"
-      type="text"
-      class="text-input"
-      placeholder="z.B. Fastnachtsfeuer 2026"
-      autocomplete="off"
-    >
-    <p id="config-notice" class="info-text" aria-live="polite"></p>
-  </section>
+  <div class="setup-main">
+    <h2 class="start-title">Wie möchtest du starten?</h2>
+    <div class="start-cards">
+      <button id="start-photo" class="start-card start-card-wide" type="button">
+        <svg class="start-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        <span class="start-text">
+          <span class="start-badge">Empfohlen</span>
+          <strong>Preisliste fotografieren</strong>
+          <span class="start-desc">Die KI übernimmt Artikel und Preise.</span>
+        </span>
+      </button>
+      <button id="start-template" class="start-card" type="button">
+        <svg class="start-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
+        <strong>Vom Verein übernehmen</strong>
+        <span class="start-desc">Datei öffnen – oder den geteilten Link antippen</span>
+      </button>
+      <button id="start-example" class="start-card" type="button">
+        <svg class="start-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>
+        <strong>Beispiel ausprobieren</strong>
+        <span class="start-desc">Fertiges Fest zum Testen</span>
+      </button>
+      <button id="start-manual" class="start-card start-card-wide" type="button">
+        <svg class="start-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
+        <span class="start-text">
+          <strong>Liste eintippen</strong>
+          <span class="start-desc">Artikel einzeln anlegen oder eine Preisliste als Text einfügen.</span>
+        </span>
+      </button>
+    </div>
+    <input id="import-file" type="file" accept=".json" class="visually-hidden" aria-label="Einrichtung (JSON-Datei) öffnen">
+    <p id="import-error" class="error-text" aria-live="polite"></p>
 
-  <section class="setup-section">
-    <h2 class="section-title">Artikel hinzufügen</h2>
-    <p class="pfand-hint">
-      Tipp: „Pfand" kann mit negativem Preis eingetragen werden, z.B. -2,00 €
-    </p>
+    <section id="photo-panel" class="setup-section photo-panel" hidden>
+      <div id="photo-connect">
+        <h2 class="section-title">Einmal verbinden, dann einfach fotografieren</h2>
+        <p class="section-hint">
+          Zum Lesen des Fotos braucht die App eine KI. Mit OpenRouter geht das per Anmeldung – ohne Schlüssel abzutippen.
+        </p>
+        <ul class="check-list">
+          <li>Mit Google-Konto oder E-Mail anmelden</li>
+          <li>Kostenlos: bis 50 Fotos pro Tag, ohne Kreditkarte</li>
+          <li>Die Verbindung bleibt nur auf diesem Gerät</li>
+        </ul>
+        <button id="btn-connect" class="btn btn-primary btn-full" type="button">Mit OpenRouter verbinden</button>
+      </div>
+      <div id="photo-ready" hidden>
+        <p id="photo-connected" class="info-text" aria-live="polite">Mit OpenRouter verbunden.</p>
+        <button id="btn-photo" class="btn btn-primary btn-full" type="button">Foto der Preisliste aufnehmen</button>
+        <input id="photo-file" type="file" accept="image/*" class="visually-hidden" aria-label="Foto auswählen">
+      </div>
+      <p id="photo-status" class="info-text" aria-live="polite"></p>
+      <p id="photo-error" class="error-text" aria-live="polite"></p>
+      <button id="btn-no-account" class="btn btn-ghost btn-full" type="button">Lieber ohne Konto (KI-App)</button>
 
-    <div class="item-form">
-      <label for="item-name" class="field-label">Artikelname</label>
+      <div id="ki-app" class="ki-app" hidden>
+        <h2 class="section-title">Mit deiner KI-App auslesen</h2>
+        <p class="section-hint">
+          Schicke das Foto mit dem Auftrag an eine KI-App (z.&nbsp;B. Claude, ChatGPT, Gemini), kopiere die Antwort und füge sie hier ein.
+        </p>
+        <button id="btn-share-photo" class="btn btn-secondary btn-full" type="button" hidden>Foto an KI-App senden</button>
+        <input id="share-file" type="file" accept="image/*" class="visually-hidden" aria-label="Foto zum Teilen auswählen">
+        <label for="price-list-prompt" class="field-label">Auftrag für die KI-App</label>
+        <textarea id="price-list-prompt" class="text-input price-list-text" rows="4" readonly>Lies die Preisliste auf dem Foto aus. Antworte nur mit den Artikeln, einer pro Zeile im Format „Name Preis", z. B. „Bratwurst 3,50". Rückgaben wie Pfand mit Minus, z. B. „Pfand zurück -2". Keine Überschriften, keine Erklärungen.</textarea>
+        <button id="btn-copy-prompt" class="btn btn-ghost btn-full" type="button">Auftrag kopieren</button>
+        <p id="prompt-status" class="info-text" aria-live="polite"></p>
+        <label for="ki-answer" class="field-label">Antwort der KI-App</label>
+        <textarea id="ki-answer" class="text-input price-list-text" rows="5"></textarea>
+        <button id="btn-ki-apply" class="btn btn-primary btn-full" type="button">Antwort übernehmen</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="setup-screen" class="create-screen" hidden>
+  <header class="app-header">
+    <h1>Neue Veranstaltung</h1>
+    <button id="btn-restart" class="btn btn-back" type="button">Anders starten</button>
+  </header>
+
+  <div class="setup-main">
+    <div class="setup-section">
+      <label for="event-name" class="field-label">Name der Veranstaltung</label>
       <input
-        id="item-name"
+        id="event-name"
         type="text"
         class="text-input"
-        placeholder="Artikelname"
+        placeholder="z.B. Fastnachtsfeuer 2026"
         autocomplete="off"
       >
-      <label for="item-price" class="field-label">Preis (€)</label>
-      <input
-        id="item-price"
-        type="number"
-        class="text-input"
-        placeholder="Preis (€)"
-        step="0.01"
-      >
-      <div class="color-row">
-        <label for="item-color" class="field-label">Farbe</label>
-        <input id="item-color" type="color" value="#cccccc" class="color-input">
-      </div>
-      <button id="btn-add-item" class="btn btn-secondary">+ Artikel</button>
+      <p id="config-notice" class="info-text" aria-live="polite"></p>
     </div>
 
-    <details id="price-list" class="price-list">
-      <summary>Preisliste als Text einfügen</summary>
-      <p class="section-hint">
-        Ein Artikel pro Zeile, der Preis steht am Ende, z.&nbsp;B. „Bratwurst 3,50" oder „Pfand zurück -2".
-      </p>
-      <label for="price-list-text" class="field-label">Preisliste</label>
-      <textarea id="price-list-text" class="text-input price-list-text" rows="6"></textarea>
-      <button id="btn-price-list-apply" class="btn btn-secondary btn-full">Artikel übernehmen</button>
-      <p id="price-list-result" class="info-text" aria-live="polite"></p>
-      <div id="price-list-rejected" class="price-list-rejected" hidden>
-        <p class="error-text">Diese Zeilen wurden nicht übernommen:</p>
-        <ul id="price-list-rejected-lines"></ul>
+    <section class="setup-section">
+      <h2 class="section-title">Artikel</h2>
+      <div id="setup-items-list" class="setup-items-list"></div>
+
+      <div class="item-form">
+        <label for="item-name" class="field-label">Artikelname</label>
+        <input
+          id="item-name"
+          type="text"
+          class="text-input"
+          placeholder="Artikelname"
+          autocomplete="off"
+        >
+        <label for="item-price" class="field-label">Preis (€)</label>
+        <input
+          id="item-price"
+          type="number"
+          class="text-input"
+          placeholder="Preis (€)"
+          step="0.01"
+        >
+        <div class="color-row">
+          <label for="item-color" class="field-label">Farbe</label>
+          <input id="item-color" type="color" value="#cccccc" class="color-input">
+        </div>
+        <button id="btn-add-item" class="btn btn-secondary">+ Artikel</button>
       </div>
-      <div id="photo-import" class="photo-import" hidden>
-        <button id="btn-photo" class="btn btn-secondary btn-full">Foto der Preistafel auslesen</button>
-        <input id="photo-file" type="file" accept="image/*" class="visually-hidden" aria-label="Foto auswählen">
-        <p id="photo-status" class="info-text" aria-live="polite"></p>
-        <p id="photo-error" class="error-text" aria-live="polite"></p>
-      </div>
-      <p id="photo-setup-hint" class="section-hint">
-        Fotos direkt auslesen: KI-Anbieter unter <a href="settings/">Einstellungen</a> einrichten.
+      <p class="pfand-hint">
+        Tipp: „Pfand" kann mit negativem Preis eingetragen werden, z.B. -2,00 €
       </p>
-      <p class="section-hint">
-        Ohne eigenen Schlüssel: Kopiere diesen Auftrag in eine KI-App (z.&nbsp;B. Claude, ChatGPT, Gemini),
-        hänge das Foto an und füge die Antwort oben ein.
-      </p>
-      <label for="price-list-prompt" class="field-label">Auftrag für die KI-App</label>
-      <textarea id="price-list-prompt" class="text-input price-list-text" rows="4" readonly>Lies die Preisliste auf dem Foto aus. Antworte nur mit den Artikeln, einer pro Zeile im Format „Name Preis", z. B. „Bratwurst 3,50". Rückgaben wie Pfand mit Minus, z. B. „Pfand zurück -2". Keine Überschriften, keine Erklärungen.</textarea>
-      <button id="btn-copy-prompt" class="btn btn-secondary btn-full">Auftrag kopieren</button>
-      <p id="prompt-status" class="info-text" aria-live="polite"></p>
-    </details>
 
-    <div id="setup-items-list" class="setup-items-list"></div>
-  </section>
+      <details id="price-list" class="price-list">
+        <summary>Preisliste als Text einfügen</summary>
+        <p class="section-hint">
+          Ein Artikel pro Zeile, der Preis steht am Ende, z.&nbsp;B. „Bratwurst 3,50" oder „Pfand zurück -2".
+        </p>
+        <label for="price-list-text" class="field-label">Preisliste</label>
+        <textarea id="price-list-text" class="text-input price-list-text" rows="6"></textarea>
+        <button id="btn-price-list-apply" class="btn btn-secondary btn-full">Artikel übernehmen</button>
+        <p id="price-list-result" class="info-text" aria-live="polite"></p>
+        <div id="price-list-rejected" class="price-list-rejected" hidden>
+          <p class="error-text">Diese Zeilen wurden nicht übernommen:</p>
+          <ul id="price-list-rejected-lines"></ul>
+        </div>
+      </details>
+    </section>
+  </div>
 
-  <section class="setup-section setup-actions">
-    <h2 class="section-title">Konfiguration</h2>
-    <button id="btn-example-config" class="btn btn-secondary btn-full">
-      Beispielkonfiguration laden
-    </button>
-    <button id="btn-import" class="btn btn-secondary btn-full">
-      Einstellungen importieren
-    </button>
-    <input
-      id="import-file"
-      type="file"
-      accept=".json"
-      class="visually-hidden"
-      aria-label="JSON-Datei importieren"
-    >
-    <p id="import-error" class="error-text" aria-live="polite"></p>
-  </section>
-
-  <section class="setup-section">
-    <h2 class="section-title">Rechtliches</h2>
+  <footer class="setup-footer">
     <label for="accept-liability" class="liability-label">
       <input id="accept-liability" type="checkbox" class="liability-checkbox">
       <span>Ich habe den
@@ -109,10 +154,9 @@
         Das <a href="impressum/" target="_blank" rel="noopener">Impressum</a> habe ich zur Kenntnis genommen.
       </span>
     </label>
-  </section>
-
-  <button id="btn-start-event" class="btn btn-primary btn-full" disabled>
-    Veranstaltung starten ▶
-  </button>
+    <button id="btn-start-event" class="btn btn-primary btn-full" disabled>
+      Kasse öffnen ▶
+    </button>
+  </footer>
+</div>
 </main>
-

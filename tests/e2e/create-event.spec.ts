@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { stubStoragePersistence } from './utils';
+import { openManualSetup, stubStoragePersistence } from './utils';
 
 test('create flow enables start and navigates to cashier', async ({ page }) => {
-  await page.goto('/create/');
+  await openManualSetup(page);
 
   await page.fill('#event-name', 'Vereinsfest');
   await page.fill('#item-name', 'Wasser');
@@ -20,7 +20,7 @@ test('create flow enables start and navigates to cashier', async ({ page }) => {
 });
 
 test('create edits, cancels and removes pending items inline', async ({ page }) => {
-  await page.goto('/create/');
+  await openManualSetup(page);
   for (const [name, price] of [
     ['Wasser', '1.50'],
     ['Bier', '3'],
@@ -55,14 +55,40 @@ test('create imports an event from a JSON file', async ({ page }) => {
   await expect(page.locator('#event-name')).toHaveValue('Sommerfest');
   await expect(page.locator('#setup-items-list .setup-item-name')).toHaveText('Wurst');
   await expect(page.locator('#import-error')).toHaveText('');
+  await expect(page.locator('#config-notice')).toContainText('Einrichtung übernommen');
 
+  await page.click('#btn-restart');
   await page.setInputFiles('#import-file', 'tests/e2e/fixtures/import-invalid.txt');
   await expect(page.locator('#import-error')).toContainText('Ungültiges JSON-Format');
+  await expect(page.locator('#start-screen')).toBeVisible();
+});
+
+test('create starts on the start screen and loads the example', async ({ page }) => {
+  await page.goto('/create/');
+  await expect(page.locator('#start-screen')).toBeVisible();
+  await expect(page.locator('#setup-screen')).toBeHidden();
+
+  await page.click('#start-example');
+  await expect(page.locator('#setup-screen')).toBeVisible();
+  await expect(page.locator('#event-name')).toHaveValue('Vereinsfest');
+  await expect(page.locator('#setup-items-list .setup-item-row')).toHaveCount(14);
+  await expect(page.locator('#config-notice')).toContainText('Beispiel geladen');
+
+  await page.click('#btn-restart');
+  await expect(page.locator('#start-screen')).toBeVisible();
+});
+
+test('the template card opens the file picker', async ({ page }) => {
+  await page.goto('/create/');
+  const chooser = page.waitForEvent('filechooser');
+  await page.click('#start-template');
+  await (await chooser).setFiles('tests/e2e/fixtures/import-event.json');
+  await expect(page.locator('#event-name')).toHaveValue('Sommerfest');
 });
 
 test('starting an event requests persistent storage', async ({ page }) => {
   await page.addInitScript(stubStoragePersistence, true);
-  await page.goto('/create/');
+  await openManualSetup(page);
   await page.fill('#event-name', 'Vereinsfest');
   await page.fill('#item-name', 'Wasser');
   await page.fill('#item-price', '1.50');

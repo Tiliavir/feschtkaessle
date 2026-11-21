@@ -1,5 +1,5 @@
-import type { PersistenceStatus, VisionProvider } from '../shared/index';
-import { EventConfigs, Models, Storage, UI, Vision } from '../shared/index';
+import type { PersistenceStatus } from '../shared/index';
+import { EventConfigs, Models, Storage, UI, Vision, VisionError } from '../shared/index';
 
 // ─── Settings Page ────────────────────────────────────────────────────────────
 const SettingsApp = (() => {
@@ -121,37 +121,45 @@ const SettingsApp = (() => {
     if (btn) btn.hidden = status !== 'not-persisted';
   }
 
-  function bindVisionSettings(): void {
-    const provider = document.getElementById('vision-provider') as HTMLSelectElement | null;
-    const key = document.getElementById('vision-key') as HTMLInputElement | null;
-    const model = document.getElementById('vision-model') as HTMLInputElement | null;
-    const details = document.getElementById('vision-details');
-    if (!provider || !key || !model || !details) return;
+  function renderVision(): void {
+    const connected = Vision.isConnected();
+    UI.setText('vision-status', connected ? 'Mit OpenRouter verbunden.' : 'Nicht verbunden.');
+    const connect = document.getElementById('btn-vision-connect');
+    const disconnect = document.getElementById('btn-vision-disconnect');
+    if (connect) connect.hidden = connected;
+    if (disconnect) disconnect.hidden = !connected;
+  }
 
-    const settings = Vision.loadSettings();
-    provider.value = settings.provider ?? '';
-    key.value = settings.apiKey;
-    model.value = settings.model;
+  function showVisionError(e: unknown): void {
+    UI.setText('vision-error', e instanceof VisionError ? e.message : 'Verbinden ist fehlgeschlagen.');
+  }
 
-    function sync(): void {
-      const selected = provider?.value ? (provider.value as VisionProvider) : null;
-      if (details) details.hidden = selected === null;
-      if (model) model.placeholder = selected ? Vision.DEFAULT_MODELS[selected] : '';
+  // OpenRouter redirects back to this page with `?code=…&state=…`.
+  async function bindVisionSettings(): Promise<void> {
+    UI.on('btn-vision-connect', 'click', () => {
+      UI.setText('vision-error', '');
+      Vision.startConnect(location.origin + location.pathname)
+        .then((url) => location.assign(url))
+        .catch(showVisionError);
+    });
+    UI.on('btn-vision-disconnect', 'click', () => {
+      Vision.disconnect();
+      renderVision();
+    });
+    renderVision();
+    const search = location.search;
+    if (!new URLSearchParams(search).has('code')) return;
+    history.replaceState(null, '', location.pathname);
+    try {
+      await Vision.completeConnect(search);
+    } catch (e) {
+      showVisionError(e);
     }
-
-    function save(): void {
-      const selected = provider?.value ? (provider.value as VisionProvider) : null;
-      Vision.saveSettings({ provider: selected, apiKey: key?.value.trim() ?? '', model: model?.value.trim() ?? '' });
-      sync();
-      UI.setText('vision-status', selected ? 'Gespeichert.' : 'Ausgeschaltet, Schlüssel gelöscht.');
-    }
-
-    sync();
-    for (const el of [provider, key, model]) el.addEventListener('change', save);
+    renderVision();
   }
 
   function bindEvents(): void {
-    bindVisionSettings();
+    void bindVisionSettings();
     const deviceInput = document.getElementById('device-name') as HTMLInputElement | null;
     if (deviceInput) {
       deviceInput.value = state.deviceName;
