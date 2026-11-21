@@ -93,7 +93,9 @@ const CreateApp = (() => {
       const event = Models.createEvent(name);
       event.items = pendingItems.slice();
       Storage.addEvent(currentState, event);
-      location.href = document.baseURI;
+      void Storage.requestPersistence().finally(() => {
+        location.href = document.baseURI;
+      });
     });
   }
 

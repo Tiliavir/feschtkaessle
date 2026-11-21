@@ -106,6 +106,37 @@ function deleteEvent(state: AppState, eventId: string): AppState {
   return newState;
 }
 
+// ─── Persistent storage ───────────────────────────────────────────────
+// Without persistence the browser may evict localStorage under storage pressure.
+type PersistenceStatus = 'persisted' | 'not-persisted' | 'unsupported';
+
+function storageManager(): StorageManager | null {
+  if (typeof navigator === 'undefined' || !navigator.storage) return null;
+  if (typeof navigator.storage.persisted !== 'function' || typeof navigator.storage.persist !== 'function') return null;
+  return navigator.storage;
+}
+
+async function getPersistenceStatus(): Promise<PersistenceStatus> {
+  const manager = storageManager();
+  if (!manager) return 'unsupported';
+  try {
+    return (await manager.persisted()) ? 'persisted' : 'not-persisted';
+  } catch {
+    return 'unsupported';
+  }
+}
+
+async function requestPersistence(): Promise<PersistenceStatus> {
+  const manager = storageManager();
+  if (!manager) return 'unsupported';
+  try {
+    if (await manager.persisted()) return 'persisted';
+    return (await manager.persist()) ? 'persisted' : 'not-persisted';
+  } catch {
+    return 'unsupported';
+  }
+}
+
 // ─── Reset (for testing / manual reset) ───────────────────────────────
 function resetState(): AppState {
   try {
@@ -129,7 +160,9 @@ export const Storage = {
   addTransaction,
   closeEvent,
   deleteEvent,
+  getPersistenceStatus,
+  requestPersistence,
   resetState,
 };
 
-export type { AppState };
+export type { AppState, PersistenceStatus };

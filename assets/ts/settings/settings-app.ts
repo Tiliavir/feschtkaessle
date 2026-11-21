@@ -1,3 +1,4 @@
+import type { PersistenceStatus } from '../shared/index';
 import { Models, Storage, UI } from '../shared/index';
 
 // ─── Settings Page ────────────────────────────────────────────────────────────
@@ -9,6 +10,7 @@ const SettingsApp = (() => {
     renderActiveEvent();
     renderAllEvents();
     bindEvents();
+    void Storage.getPersistenceStatus().then(renderPersistence);
   }
 
   function renderActiveEvent(): void {
@@ -101,7 +103,23 @@ const SettingsApp = (() => {
     });
   }
 
+  const PERSISTENCE_TEXT: Record<PersistenceStatus, string> = {
+    persisted: 'Dauerhaft gespeichert: Der Browser löscht die Daten nicht von sich aus.',
+    'not-persisted': 'Nicht dauerhaft gespeichert: Bei Speichermangel darf der Browser die Daten löschen.',
+    unsupported: 'Dieser Browser kann die Daten nicht dauerhaft sichern.',
+  };
+
+  function renderPersistence(status: PersistenceStatus): void {
+    UI.setText('storage-status', PERSISTENCE_TEXT[status]);
+    const btn = document.getElementById('btn-persist-storage');
+    if (btn) btn.hidden = status !== 'not-persisted';
+  }
+
   function bindEvents(): void {
+    UI.on('btn-persist-storage', 'click', () => {
+      void Storage.requestPersistence().then(renderPersistence);
+    });
+
     UI.on('btn-back-cashier', 'click', () => {
       sessionStorage.setItem('vt-direction', 'back');
       location.href = document.baseURI;

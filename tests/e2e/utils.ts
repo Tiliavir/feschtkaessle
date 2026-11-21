@@ -60,3 +60,23 @@ export function buildClosedEventSeed() {
     },
   };
 }
+
+// Replaces navigator.storage.persisted/persist so tests don't depend on the browser's
+// persistence heuristics. `granted` is what persist() answers; persisted() reflects it after.
+// Each persist() call is counted in sessionStorage['persist-calls'] (survives navigation).
+// Use as `page.addInitScript(stubStoragePersistence, granted)`: init scripts are serialized,
+// so the value must be passed as argument, not captured.
+export function stubStoragePersistence(granted: boolean) {
+  let persisted = false;
+  Object.defineProperty(navigator, 'storage', {
+    configurable: true,
+    value: {
+      persisted: () => Promise.resolve(persisted),
+      persist: () => {
+        sessionStorage.setItem('persist-calls', String(Number(sessionStorage.getItem('persist-calls') ?? 0) + 1));
+        persisted = granted;
+        return Promise.resolve(granted);
+      },
+    },
+  });
+}
