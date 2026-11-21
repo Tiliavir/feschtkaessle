@@ -16,7 +16,7 @@ A lightweight, browser-based cashier app for club events ("Vereinsfeste", Aleman
 - 🛒 **Item tiles** — color-coded, tap to add to cart
 - 💶 **Transaction tracking** — total, received amount, change, tip
 - 🔗 **Share items as a link** — other helpers open it and start with the same items; reuse earlier events as template
-- 📝 **Price list import** — paste text (one item per line) or, with your own Anthropic/OpenAI key, read a photo of the price board
+- 📝 **Price list import** — paste text (one item per line) or, with your own Anthropic, OpenAI or Gemini key, read a photo of the price board
 - 🧾 **Statement** — CSV for the treasurer; merge the sales of several devices into one total
 - 📊 **Settings & history** — view past events with revenue and transaction counts
 - ⚖️ **Legal pages** — Impressum and Haftungsausschluss (liability disclaimer)
