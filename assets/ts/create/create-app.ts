@@ -312,7 +312,7 @@ const CreateApp = (() => {
 
   function canShareImages(): boolean {
     if (typeof navigator.canShare !== 'function') return false;
-    const probe = new File([new Uint8Array(1)], 'preistafel.jpg', { type: 'image/jpeg' });
+    const probe = new File([new Uint8Array(1)], 'preisliste.jpg', { type: 'image/jpeg' });
     return navigator.canShare({ files: [probe] });
   }
 
