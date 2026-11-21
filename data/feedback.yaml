@@ -1,0 +1,49 @@
+# Guided feedback questions: single source for the form (layouts/partials/pages/feedback.html)
+# and the server-side validation (assets/php/feedback.php). All optional, at least one answer.
+questions:
+  - id: nutzung
+    question: Wofür nutzt du die App?
+    type: choice
+    options:
+      - value: vereinsfest
+        label: Vereinsfest
+      - value: verkauf
+        label: Getränke- oder Kuchenverkauf
+      - value: schulfest
+        label: Schul- oder Kitafest
+      - value: ausprobiert
+        label: Nur ausprobiert
+      - value: anderes
+        label: Anderes
+  - id: geraete
+    question: Wie viele Geräte kassieren bei euch?
+    type: choice
+    options:
+      - value: eins
+        label: "1"
+      - value: zwei-drei
+        label: 2–3
+      - value: mehr
+        label: Mehr
+  - id: umstaendlich
+    question: Was war beim letzten Fest umständlich?
+    type: text
+    maxLength: 2000
+  - id: nervt
+    question: Was nervt dich?
+    type: text
+    maxLength: 2000
+  - id: fehlt
+    question: Was fehlt dir?
+    type: text
+    maxLength: 2000
+  - id: wieder
+    question: Würdest du sie wieder nutzen?
+    type: choice
+    options:
+      - value: ja
+        label: Ja
+      - value: vielleicht
+        label: Vielleicht
+      - value: nein
+        label: Nein

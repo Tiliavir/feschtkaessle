@@ -1,7 +1,8 @@
 # 7. Deployment View
 
 Static site on GitHub Pages: <https://tiliavir.github.io/feschtkaessle/>.
-No server; all data stays in the browser (`localStorage`).
+No server; all data stays in the browser (`localStorage`). Only exception: the optional
+feedback endpoint, a PHP script at Alfahosting that files GitHub issues ([feedback](../feedback.md)).
 
 ```mermaid
 flowchart LR

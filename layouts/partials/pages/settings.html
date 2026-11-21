@@ -25,6 +25,9 @@
     <p id="close-notice" class="section-hint close-notice" hidden>
       Veranstaltung beendet. Exportiere die Abrechnung unter
       <a id="close-notice-stats" href="settings/">Statistik</a>, damit die Verkäufe nicht nur auf diesem Gerät liegen.
+      {{- with site.Params.feedbackEndpoint }}
+      Wie lief's? <a id="close-notice-feedback" href="feedback/">Feedback geben</a>
+      {{- end }}
     </p>
   </div>
 
@@ -52,6 +55,14 @@
     <button id="btn-vision-disconnect" class="btn btn-ghost btn-full" type="button" hidden>Verbindung trennen</button>
     <p id="vision-error" class="error-text" aria-live="polite"></p>
   </section>
+
+  {{- with site.Params.feedbackEndpoint }}
+  <section id="feedback-section" class="settings-section">
+    <h2 class="section-title">Feedback</h2>
+    <p class="section-hint">Was war umständlich, was fehlt dir? Ein paar kurze Fragen, ohne Anmeldung.</p>
+    <a href="feedback/" class="btn btn-secondary btn-full">Feedback geben</a>
+  </section>
+  {{- end }}
 
   <section class="settings-section">
     <h2 class="section-title">Datenspeicher</h2>
