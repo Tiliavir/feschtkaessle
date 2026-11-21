@@ -42,6 +42,7 @@ Each page app (e.g. `assets/ts/app.ts`, `assets/ts/create/create-app.ts`) import
 - **`assets/manifest.webmanifest`** — Hugo template (name and description from `hugo.toml`), published on the home page build; standalone display, relative `start_url`/`scope` (works under the GitHub Pages subpath). Icon: a cash register (Registrierkasse) in the app colours. Icons in `static/icons/`: 192/512 PNG `any` (from `static/favicon.svg`), `maskable` and the 180 px `apple-touch-icon.png` (both from `static/icons/icon-maskable.svg`, content scaled into the safe zone); regenerate with `rsvg-convert -w <size> -h <size> <svg> -o <png>`.
 - **`assets/ts/sw/sw.ts`** — service worker, built by `layouts/partials/pwa.html` to `sw.js` in production builds only (`hugo serve` gets none). Precaches all pages (self-contained, inline CSS/JS) and icons; cache-first. Cache version = build time, so every deploy refreshes the cache. Has its own `tsconfig.json` (WebWorker lib).
 - **`assets/ts/register-sw.ts`** — registers the service worker.
+- **`assets/ts/shared/install.ts`** + **`layouts/partials/install.html`** — suggests installing: slim line on the cashier (`"bar"`, × hides it for good) and a section in settings (`"section"`). Native dialog via `beforeinstallprompt`; short instructions on iPhone/iPad and Firefox for Android; nothing on other browsers or inside the installed app. Device setting in `feschtkaessle_install_v1` (`{ dismissed, installed }`). Exports `Install` namespace.
 
 ## localStorage Schema
 
@@ -224,4 +225,4 @@ npm run compile && npx playwright test tests/e2e/cashier.spec.ts -g "test name"
 4. **German locale**: All user-facing text in German
 5. **No external dependencies**: Pure browser APIs, no npm runtime deps
 6. **Name in one place**: the app name is `title` and the tagline `params.description` in `hugo.toml`; page titles, meta descriptions and the web app manifest (`assets/manifest.webmanifest`, a Hugo template) read them from there.
-7. **Legacy name**: up to 0.x the app was "MVW Kassierer". `Storage.loadState()` moves data from the old key `kassierer_app_v1` to `feschtkaessle_app_v1` once; the service worker deletes old `kassierer-` caches. The photo settings key is `feschtkaessle_vision_v1`, the sales export type `feschtkaessle-sales`.
+7. **Legacy name**: up to 0.x the app was "MVW Kassierer". `Storage.loadState()` moves data from the old key `kassierer_app_v1` to `feschtkaessle_app_v1` once; the service worker deletes old `kassierer-` caches. The photo settings key is `feschtkaessle_vision_v1`, the install hint key `feschtkaessle_install_v1`, the sales export type `feschtkaessle-sales`.

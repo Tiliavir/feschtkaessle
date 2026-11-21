@@ -1,4 +1,4 @@
-import { Models, Storage, UI } from './shared/index';
+import { Install, Models, Storage, UI } from './shared/index';
 
 // ─── App State ────────────────────────────────────────────────────────────────
 const App = (() => {
@@ -19,6 +19,7 @@ const App = (() => {
     UI.renderItemGrid(active.items, cart);
     updateTransactionBar();
     bindEvents();
+    Install.bind();
   }
 
   // ─── Transaction bar update ───────────────────────────────────────────────
