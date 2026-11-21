@@ -45,7 +45,7 @@ const CreateApp = (() => {
     const setup = document.getElementById('setup-screen');
     if (start) start.hidden = screen !== 'start';
     if (setup) setup.hidden = screen !== 'setup';
-    window.scrollTo(0, 0);
+    globalThis.scrollTo(0, 0);
   }
 
   function showSetup(notice: string): void {
