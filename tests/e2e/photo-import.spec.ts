@@ -116,7 +116,7 @@ test('a photo is read via OpenRouter and its items are ready for review', async 
   await expect(page.locator('#config-notice')).toContainText('3 Artikel vom Foto übernommen');
   await expect(page.locator('#setup-items-list .setup-item-name')).toHaveText(['Bratwurst', 'Bier', 'Pfand']);
   await expect(page.locator('#price-list-rejected li')).toHaveText(['Zeile 1: „Getränke" (kein Preis am Zeilenende)']);
-  await expect(page.locator('#price-list')).toHaveAttribute('open', '');
+  await expect(page.locator('#item-add')).not.toHaveAttribute('open');
 
   const sent = request as unknown as { auth: string; body: Record<string, unknown> };
   expect(sent.auth).toBe('Bearer sk-or-test');

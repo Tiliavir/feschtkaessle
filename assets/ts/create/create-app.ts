@@ -50,7 +50,17 @@ const CreateApp = (() => {
 
   function showSetup(notice: string): void {
     UI.setText('config-notice', notice);
+    const add = document.getElementById('item-add') as HTMLDetailsElement | null;
+    if (add) add.open = pendingItems.length === 0;
     showScreen('setup');
+  }
+
+  // Only one start panel (photo or manual) is open at a time.
+  function openPanel(panel: 'photo' | 'manual'): void {
+    const photo = document.getElementById('photo-panel');
+    const manual = document.getElementById('manual-panel');
+    if (photo) photo.hidden = panel !== 'photo';
+    if (manual) manual.hidden = panel !== 'manual';
   }
 
   // A share link or "use as template" opens this page with `#cfg=…`.
@@ -76,6 +86,7 @@ const CreateApp = (() => {
 
   function replaceItems(items: Item[]): void {
     pendingItems = items;
+    renderRejected([]);
     if (editor) editor.stopEditing();
   }
 
@@ -89,10 +100,7 @@ const CreateApp = (() => {
     UI.on('accept-liability', 'change', updateStartButton);
     UI.on('btn-restart', 'click', () => showScreen('start'));
 
-    UI.on('start-manual', 'click', () => {
-      showSetup('');
-      (document.getElementById('event-name') as HTMLInputElement | null)?.focus();
-    });
+    bindManualEntry();
 
     UI.on('start-example', 'click', () => {
       const nameInput = document.getElementById('event-name') as HTMLInputElement;
@@ -120,7 +128,6 @@ const CreateApp = (() => {
 
     bindPhotoImport();
     bindAppImport();
-    UI.on('btn-price-list-apply', 'click', applyPriceList);
 
     UI.on('btn-start-event', 'click', () => {
       const nameInput = document.getElementById('event-name') as HTMLInputElement;
@@ -148,33 +155,91 @@ const CreateApp = (() => {
     });
   }
 
-  // ─── Price list text ────────────────────────────────────────────────────────
-  // Appends the parsed items, so a long list can be pasted in parts.
-  function applyPriceList(): void {
-    const textarea = document.getElementById('price-list-text') as HTMLTextAreaElement | null;
-    if (!textarea) return;
-    const count = applyText(textarea.value);
-    UI.setText('price-list-result', `${count} Artikel übernommen.`);
+  // ─── Manual entry: text first ───────────────────────────────────────────────
+  // One item per line; colours and details come on the setup screen.
+  let manualParsed: { items: Item[]; rejected: RejectedLine[] } | null = null;
+
+  function bindManualEntry(): void {
+    const textarea = document.getElementById('manual-text') as HTMLTextAreaElement | null;
+    const next = document.getElementById('btn-manual-next') as HTMLButtonElement | null;
+    UI.on('start-manual', 'click', () => {
+      openPanel('manual');
+      document.getElementById('manual-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      textarea?.focus();
+    });
+    textarea?.addEventListener('input', () => {
+      if (next) next.disabled = textarea.value.trim() === '';
+      hideManualRejected();
+    });
+    UI.on('btn-manual-next', 'click', submitManual);
+    UI.on('btn-manual-fix', 'click', () => {
+      hideManualRejected();
+      textarea?.focus();
+    });
+    UI.on('btn-manual-skip', 'click', () => {
+      if (manualParsed) finishManual(manualParsed.items);
+    });
   }
 
-  // Adds the recognised items; unclear lines stay in the text field with the reason.
+  function submitManual(): void {
+    const textarea = document.getElementById('manual-text') as HTMLTextAreaElement | null;
+    if (!textarea || textarea.value.trim() === '') return;
+    const result = PriceList.parse(textarea.value);
+    const items = EventConfigs.toItems({ name: '', items: result.items });
+    if (result.rejected.length === 0) {
+      finishManual(items);
+      return;
+    }
+    manualParsed = { items, rejected: result.rejected };
+    const title =
+      items.length === 0
+        ? 'Keine Zeile hat einen erkennbaren Preis am Ende:'
+        : `${items.length} Artikel erkannt. Bei diesen Zeilen fehlt ein Preis am Ende:`;
+    UI.setText('manual-rejected-title', title);
+    renderRejectedLines('manual-rejected-lines', result.rejected);
+    const skip = document.getElementById('btn-manual-skip');
+    if (skip) skip.hidden = items.length === 0;
+    const box = document.getElementById('manual-rejected');
+    if (box) box.hidden = false;
+    const next = document.getElementById('btn-manual-next');
+    if (next) next.hidden = true;
+  }
+
+  function hideManualRejected(): void {
+    manualParsed = null;
+    const box = document.getElementById('manual-rejected');
+    if (box) box.hidden = true;
+    const next = document.getElementById('btn-manual-next');
+    if (next) next.hidden = false;
+  }
+
+  function finishManual(items: Item[]): void {
+    hideManualRejected();
+    replaceItems(items);
+    showSetup(`${items.length} Artikel übernommen. Farben, Reihenfolge und weitere Artikel kannst du hier anpassen.`);
+    (document.getElementById('event-name') as HTMLInputElement | null)?.focus();
+  }
+
+  // ─── Recognised text (photo, AI app) ────────────────────────────────────────
+  // Appends the recognised items; unclear lines are listed on the setup screen.
   function applyText(text: string): number {
     const result = PriceList.parse(text);
     if (result.items.length > 0) {
       replaceItems([...pendingItems, ...EventConfigs.toItems({ name: '', items: result.items })]);
     }
-    const textarea = document.getElementById('price-list-text') as HTMLTextAreaElement | null;
-    if (textarea) textarea.value = result.rejected.map((r) => r.text).join('\n');
     renderRejected(result.rejected);
-    const details = document.getElementById('price-list') as HTMLDetailsElement | null;
-    if (details && result.rejected.length > 0) details.open = true;
     return result.items.length;
   }
 
   function renderRejected(rejected: RejectedLine[]): void {
+    renderRejectedLines('price-list-rejected-lines', rejected);
     const box = document.getElementById('price-list-rejected');
-    const list = document.getElementById('price-list-rejected-lines');
-    if (!box || !list) return;
+    if (box) box.hidden = rejected.length === 0;
+  }
+
+  function renderRejectedLines(listId: string, rejected: RejectedLine[]): void {
+    const list = document.getElementById(listId);
+    if (!list) return;
     list.replaceChildren(
       ...rejected.map((r) => {
         const li = document.createElement('li');
@@ -182,7 +247,6 @@ const CreateApp = (() => {
         return li;
       }),
     );
-    box.hidden = rejected.length === 0;
   }
 
   function applyRecognised(text: string, source: string): void {
@@ -200,8 +264,7 @@ const CreateApp = (() => {
   }
 
   function openPhotoPanel(): void {
-    const panel = document.getElementById('photo-panel');
-    if (panel) panel.hidden = false;
+    openPanel('photo');
     renderConnection();
   }
 

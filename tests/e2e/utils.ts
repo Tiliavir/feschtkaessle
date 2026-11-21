@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 export const STORAGE_KEY = 'feschtkaessle_app_v1';
 
@@ -90,8 +90,20 @@ export function configHash(config: unknown): string {
   return `#cfg=${base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
 }
 
-// Opens the create page and picks "Liste eintippen" on the start screen.
-export async function openManualSetup(page: Page) {
+// Opens the create page, picks "Liste eintippen" and enters `text` (one item per line).
+export async function openManualSetup(page: Page, text = 'Wasser 1,50') {
   await page.goto('/create/');
   await page.click('#start-manual');
+  await page.fill('#manual-text', text);
+  await page.click('#btn-manual-next');
+  await expect(page.locator('#setup-screen')).toBeVisible();
+}
+
+// Adds one item with the single-item form of the setup screen.
+export async function addSingleItem(page: Page, name: string, price: string) {
+  const add = page.locator('#item-add');
+  if ((await add.getAttribute('open')) === null) await add.locator('summary').click();
+  await page.fill('#item-name', name);
+  await page.fill('#item-price', price);
+  await page.click('#btn-add-item');
 }

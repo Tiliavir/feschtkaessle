@@ -963,19 +963,24 @@ html[data-direction="back"] {
   flex-direction: column;
 }
 
-// ─── Price list paste (create page) ───────────────────────────────────────────
-.price-list {
+// ─── Add single items (create page) ───────────────────────────────────────────
+.item-add {
   border: 1px solid $color-border;
   border-radius: $radius-md;
-  margin: 1rem 0;
-  padding: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0 0.75rem;
 
   summary {
+    color: $color-secondary;
     cursor: pointer;
     font-weight: 600;
     min-height: 44px;
     display: flex;
     align-items: center;
+  }
+
+  &[open] {
+    padding-bottom: 0.75rem;
   }
 
   &[open] summary {
@@ -987,6 +992,10 @@ html[data-direction="back"] {
   font-family: inherit;
   margin-bottom: 0.5rem;
   resize: vertical;
+}
+
+.price-list-rejected {
+  margin-top: 0.75rem;
 }
 
 .price-list-rejected ul {
