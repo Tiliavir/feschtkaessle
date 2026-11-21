@@ -80,3 +80,10 @@ export function stubStoragePersistence(granted: boolean) {
     },
   });
 }
+
+// Encodes an event config like the app's share link (`create/#cfg=<base64url JSON>`).
+export function configHash(config: unknown): string {
+  const bytes = new TextEncoder().encode(JSON.stringify(config));
+  const base64 = btoa(Array.from(bytes, (byte) => String.fromCodePoint(byte)).join(''));
+  return `#cfg=${base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
+}

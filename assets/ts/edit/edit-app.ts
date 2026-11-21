@@ -1,4 +1,4 @@
-import { ItemEditor, Storage, UI } from '../shared/index';
+import { EventConfigs, ItemEditor, Storage, UI } from '../shared/index';
 
 // ─── Edit Page ────────────────────────────────────────────────────────────────
 const EditApp = (() => {
@@ -48,10 +48,7 @@ const EditApp = (() => {
     UI.on('btn-export', 'click', () => {
       const event = currentEvent();
       if (!event) return;
-      const data = {
-        name: event.name,
-        items: event.items.map((it) => ({ name: it.name, price: it.price, color: it.color })),
-      };
+      const data = EventConfigs.fromEvent(event);
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -60,6 +57,42 @@ const EditApp = (() => {
       a.click();
       URL.revokeObjectURL(url);
     });
+
+    UI.on('btn-share-link', 'click', () => {
+      const event = currentEvent();
+      if (!event) return;
+      void shareLink(event.name, EventConfigs.createLink(EventConfigs.fromEvent(event), document.baseURI));
+    });
+  }
+
+  // Share sheet where available (Android), else clipboard, else a field to copy by hand.
+  async function shareLink(name: string, link: string): Promise<void> {
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: name, text: `Artikel für „${name}"`, url: link });
+        UI.setText('share-status', '');
+        return;
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      UI.setText('share-status', 'Link in die Zwischenablage kopiert.');
+    } catch {
+      showLinkField(link);
+    }
+  }
+
+  function showLinkField(link: string): void {
+    const input = document.getElementById('share-link') as HTMLInputElement | null;
+    const label = document.getElementById('share-link-label');
+    if (!input || !label) return;
+    input.value = link;
+    input.hidden = false;
+    label.hidden = false;
+    input.select();
+    UI.setText('share-status', 'Link oben markieren und kopieren.');
   }
 
   return { init };

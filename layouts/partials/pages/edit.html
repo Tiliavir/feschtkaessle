@@ -41,8 +41,18 @@
     <div id="setup-items-list" class="setup-items-list"></div>
   </section>
 
-  <div class="export-row">
-    <button id="btn-export" class="btn btn-secondary">Einstellungen exportieren ↓</button>
-  </div>
+  <section class="setup-section share-section">
+    <h2 class="section-title">Mit anderen Geräten teilen</h2>
+    <p class="section-hint">
+      Der Link öffnet „Neue Veranstaltung" mit diesen Artikeln, ideal für alle, die mitkassieren.
+    </p>
+    <div class="export-row">
+      <button id="btn-share-link" class="btn btn-primary btn-full">Link teilen</button>
+      <button id="btn-export" class="btn btn-secondary btn-full">Als Datei exportieren ↓</button>
+    </div>
+    <label for="share-link" class="field-label" hidden id="share-link-label">Link zum Kopieren</label>
+    <input id="share-link" type="text" class="text-input" readonly hidden>
+    <p id="share-status" class="info-text" aria-live="polite"></p>
+  </section>
 </main>
 
