@@ -1,8 +1,8 @@
-# AGENTS.md - MVW Kassierer App
+# AGENTS.md - Feschtkässle
 
 ## Overview
 
-MVW Kassierer is a browser-based cashier application for club events (Vereinsfeste). It runs entirely in the browser with no server — all data is persisted in `localStorage`. Users can create events, add items to sell, record transactions, and view statistics.
+Feschtkässle ("Die einfache Kasse für Vereine & Feste", formerly MVW Kassierer) is a browser-based cashier application for club events (Vereinsfeste). It runs entirely in the browser with no server — all data is persisted in `localStorage`. Users can create events, add items to sell, record transactions, and view statistics.
 
 ## Architecture
 
@@ -26,7 +26,7 @@ The app is a **Multi-Page Application (MPA)** built with [Hugo](https://gohugo.i
 - **`assets/ts/shared/item-editor.ts`** — The item list of the create and edit pages (add form, inline edit, remove, reorder). Each page passes an `ItemStore` (`getItems`/`setItems`): create keeps items in memory, edit writes them via `Storage.setEventItems`. Exports `ItemEditor` namespace.
 - **`assets/ts/shared/config.ts`** — Shareable event config `{ name, items }`: validation, JSON file export/import, share link `create/#cfg=<base64url JSON>` (also used for "Als Vorlage"). Exports `EventConfigs` namespace.
 - **`assets/ts/shared/price-list.ts`** — Parser for pasted price lists (one item per line, last number = price; unclear lines are returned, not dropped). Exports `PriceList` namespace.
-- **`assets/ts/shared/sales.ts`** — Sales export (JSON, `type: "kassierer-sales"`, version 1) for merging devices, merge (dedupe by transaction id, items matched by name + price), CSV statement (`;`, decimal comma, UTF-8 BOM). Exports `Sales` namespace.
+- **`assets/ts/shared/sales.ts`** — Sales export (JSON, `type: "feschtkaessle-sales"`, version 1) for merging devices, merge (dedupe by transaction id, items matched by name + price), CSV statement (`;`, decimal comma, UTF-8 BOM). Exports `Sales` namespace.
 - **`assets/ts/shared/index.ts`** — Re-exports all shared modules.
 
 Each page app (e.g. `assets/ts/app.ts`, `assets/ts/create/create-app.ts`) imports from `./shared/index`.
@@ -38,13 +38,13 @@ Each page app (e.g. `assets/ts/app.ts`, `assets/ts/create/create-app.ts`) import
 
 ### Installable app (PWA)
 
-- **`static/manifest.webmanifest`** — standalone display, relative `start_url`/`scope` (works under the GitHub Pages subpath). Icons in `static/icons/`: 192/512 PNG `any` (from `static/favicon.svg`) and `maskable` (from `static/icons/icon-maskable.svg`); regenerate with `rsvg-convert -w <size> -h <size> <svg> -o <png>`.
+- **`assets/manifest.webmanifest`** — Hugo template (name and description from `hugo.toml`), published on the home page build; standalone display, relative `start_url`/`scope` (works under the GitHub Pages subpath). Icon: a cash register (Registrierkasse) in the app colours. Icons in `static/icons/`: 192/512 PNG `any` (from `static/favicon.svg`), `maskable` and the 180 px `apple-touch-icon.png` (both from `static/icons/icon-maskable.svg`, content scaled into the safe zone); regenerate with `rsvg-convert -w <size> -h <size> <svg> -o <png>`.
 - **`assets/ts/sw/sw.ts`** — service worker, built by `layouts/partials/pwa.html` to `sw.js` in production builds only (`hugo serve` gets none). Precaches all pages (self-contained, inline CSS/JS) and icons; cache-first. Cache version = build time, so every deploy refreshes the cache. Has its own `tsconfig.json` (WebWorker lib).
 - **`assets/ts/register-sw.ts`** — registers the service worker.
 
 ## localStorage Schema
 
-Single key `kassierer_app_v1` storing:
+Single key `feschtkaessle_app_v1` storing:
 ```json
 {
   "events": [
@@ -78,7 +78,7 @@ Single key `kassierer_app_v1` storing:
 - `deviceId` identifies this device's transactions when sales of several devices are merged; `deviceName` is its label in the statement.
 - `importedItems`: items from merged sales that match no own item (name + price); used for statistics only, not shown at the cashier.
 - `devices`: names of other devices whose sales were merged.
-- `Storage.loadState()` migrates older data (adds ids, `deviceId`, empty `importedItems`/`devices`) and saves it once, so transaction ids stay stable.
+- `Storage.loadState()` moves data from the legacy key `kassierer_app_v1` (≤ 0.x) and migrates older data (adds ids, `deviceId`, empty `importedItems`/`devices`) and saves it once, so transaction ids stay stable.
 
 ## Build Commands
 
@@ -216,8 +216,10 @@ npm run compile && npx playwright test tests/e2e/cashier.spec.ts -g "test name"
 
 ## Key Conventions
 
-1. **Data persistence**: All data in localStorage under key `kassierer_app_v1`
+1. **Data persistence**: All data in localStorage under key `feschtkaessle_app_v1`
 2. **View transitions**: Use CSS View Transitions API with direction handling
 3. **Touch support**: Handle both mouse and touch events for drag-and-drop
 4. **German locale**: All user-facing text in German
 5. **No external dependencies**: Pure browser APIs, no npm runtime deps
+6. **Name in one place**: the app name is `title` and the tagline `params.description` in `hugo.toml`; page titles, meta descriptions and the web app manifest (`assets/manifest.webmanifest`, a Hugo template) read them from there.
+7. **Legacy name**: up to 0.x the app was "MVW Kassierer". `Storage.loadState()` moves data from the old key `kassierer_app_v1` to `feschtkaessle_app_v1` once; the service worker deletes old `kassierer-` caches. The photo settings key is `feschtkaessle_vision_v1`, the sales export type `feschtkaessle-sales`.

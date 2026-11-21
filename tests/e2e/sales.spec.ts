@@ -189,3 +189,22 @@ test('settings saves the device name and hints at the export when closing', asyn
   await expect(page.locator('#close-notice')).toBeVisible();
   await expect(page.locator('#close-notice-stats')).toHaveAttribute('href', /stats\/\?id=event-dev-a$/);
 });
+
+test('data under the legacy key is moved to the new key once', async ({ page }) => {
+  const { state } = buildSeedState();
+  await page.addInitScript((value) => {
+    if (!sessionStorage.getItem('seeded')) {
+      localStorage.setItem('kassierer_app_v1', value);
+      sessionStorage.setItem('seeded', '1');
+    }
+  }, JSON.stringify(state));
+  await page.goto('/settings/');
+
+  await expect(page.locator('#settings-event-name')).toContainText('Vereinsfest');
+  const keys = await page.evaluate(() => Object.keys(localStorage).sort());
+  expect(keys).toContain('feschtkaessle_app_v1');
+  expect(keys).not.toContain('kassierer_app_v1');
+
+  await page.reload();
+  await expect(page.locator('#settings-event-name')).toContainText('Vereinsfest');
+});

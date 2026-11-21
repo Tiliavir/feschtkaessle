@@ -1,7 +1,19 @@
 import type { Event, Item, Transaction } from './models';
 import { Models } from './models';
 
-const STORAGE_KEY = 'kassierer_app_v1';
+const STORAGE_KEY = 'feschtkaessle_app_v1';
+// Key up to 0.x (app name "MVW Kassierer"); data found there is moved once to STORAGE_KEY.
+const LEGACY_STORAGE_KEY = 'kassierer_app_v1';
+
+function readRaw(): string | null {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw !== null) return raw;
+  const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacy === null) return null;
+  localStorage.setItem(STORAGE_KEY, legacy);
+  localStorage.removeItem(LEGACY_STORAGE_KEY);
+  return legacy;
+}
 
 // ─── State interface ──────────────────────────────────────────────────
 interface AppState {
@@ -64,7 +76,7 @@ function migrate(parsed: AppState): { state: AppState; changed: boolean } {
 // ─── Load / Save ──────────────────────────────────────────────────────
 function loadState(): AppState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = readRaw();
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw) as AppState;
     // Basic integrity check

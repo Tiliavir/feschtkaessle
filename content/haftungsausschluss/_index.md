@@ -1,6 +1,6 @@
 ---
 title: 'Haftungsausschluss'
-description: 'Haftungsausschluss - MVW Kassierer'
+description: 'Haftungsausschluss'
 keywords: ['Haftungsausschluss', 'Nutzung', 'Rechtliches']
 ---
 

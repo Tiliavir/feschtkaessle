@@ -4,7 +4,7 @@ const PHOTO = 'tests/e2e/fixtures/price-board.png';
 
 async function configure(page: Page, settings: unknown) {
   await page.addInitScript((value) => {
-    localStorage.setItem('kassierer_vision_v1', value);
+    localStorage.setItem('feschtkaessle_vision_v1', value);
   }, JSON.stringify(settings));
 }
 
@@ -26,7 +26,7 @@ test('settings store provider, key and model on this device', async ({ page }) =
   await page.fill('#vision-key', ' sk-ant-test ');
   await page.locator('#vision-key').blur();
 
-  const stored = () => page.evaluate(() => localStorage.getItem('kassierer_vision_v1'));
+  const stored = () => page.evaluate(() => localStorage.getItem('feschtkaessle_vision_v1'));
   await expect
     .poll(async () => JSON.parse((await stored()) ?? 'null'))
     .toEqual({

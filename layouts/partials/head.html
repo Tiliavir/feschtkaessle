@@ -1,17 +1,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="author" content="{{- .Site.Params.author | default "Markus Lindenmann" -}}"/>
-<meta name="description" content="{{ .Description }}"/>
+<meta name="description" content="{{ .Description | default site.Params.description }}"/>
 <meta name="keywords" content="{{ delimit .Keywords ", " }}"/>
 <meta name="theme-color" content="#1a1a2e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta property="og:title" content="{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} - {{ .Site.Title }}{{ end }}">
-<meta property="og:description" content="{{ .Description }}">
+<meta property="og:description" content="{{ .Description | default site.Params.description }}">
 <meta property="og:type" content="website">
 <base href="{{ .Site.BaseURL }}">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+{{- if .IsHome }}
+  {{- (resources.Get "manifest.webmanifest" | resources.ExecuteAsTemplate "manifest.webmanifest" .).Publish }}
+{{- end }}
 <link rel="manifest" href="manifest.webmanifest">
 {{- if .Params.viewTransitions }}
 <script>

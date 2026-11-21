@@ -11,7 +11,7 @@ interface VisionSettings {
   model: string;
 }
 
-const SETTINGS_KEY = 'kassierer_vision_v1';
+const SETTINGS_KEY = 'feschtkaessle_vision_v1';
 const MAX_IMAGE_SIDE = 1568;
 
 const DEFAULT_MODELS: Record<VisionProvider, string> = {
