@@ -81,7 +81,7 @@ test('connecting runs the PKCE flow and keeps the key on this device', async ({ 
     return btoa(String.fromCodePoint(...digest))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
-      .replace(/=+$/, '');
+      .replace(/=/g, '');
   }, exchange.code_verifier);
   expect(url.searchParams.get('code_challenge')).toBe(challenge);
 });

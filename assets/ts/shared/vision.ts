@@ -52,7 +52,7 @@ function isConnected(): boolean {
 function base64url(bytes: Uint8Array): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCodePoint(byte);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 function randomToken(): string {
@@ -95,8 +95,9 @@ async function completeConnect(search: string): Promise<boolean> {
   const params = new URLSearchParams(search);
   const code = params.get('code');
   if (code === null) return false;
+  const state = params.get('state');
   const pending = takePending();
-  if (pending === null || params.get('state') !== pending.state) {
+  if (state === null || pending?.state !== state) {
     throw new VisionError('Die Anmeldung bei OpenRouter konnte nicht zugeordnet werden. Bitte erneut verbinden.');
   }
   let response: Response;
