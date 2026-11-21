@@ -1,5 +1,5 @@
 import type { PersistenceStatus } from '../shared/index';
-import { EventConfigs, Models, Storage, UI, Vision, VisionError } from '../shared/index';
+import { EventConfigs, Install, Models, Storage, UI, Vision, VisionError } from '../shared/index';
 
 // ─── Settings Page ────────────────────────────────────────────────────────────
 const SettingsApp = (() => {
@@ -10,6 +10,7 @@ const SettingsApp = (() => {
     renderActiveEvent();
     renderAllEvents();
     bindEvents();
+    Install.bind();
     void Storage.getPersistenceStatus().then(renderPersistence);
   }
 

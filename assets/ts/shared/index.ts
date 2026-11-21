@@ -1,4 +1,5 @@
 export * from './config';
+export * from './install';
 export * from './item-editor';
 export * from './models';
 export * from './price-list';

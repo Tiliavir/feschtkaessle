@@ -1,0 +1,16 @@
+{{- /* Install suggestion, driven by assets/ts/shared/install.ts. "bar": slim, dismissible line on the cashier; "section": settings. One markup for both, so ids exist once. */ -}}
+{{- $bar := eq . "bar" -}}
+<div id="{{ if $bar }}install-bar{{ else }}install-section{{ end }}" class="{{ if $bar }}install-bar{{ else }}settings-section{{ end }}" hidden>
+  <div class="{{ if $bar }}install-bar-row{{ else }}install-actions{{ end }}">
+    <h2 class="{{ if $bar }}install-bar-text{{ else }}section-title{{ end }}">Als App installieren</h2>
+    {{- if not $bar }}
+    <p class="section-hint">Die Kasse startet dann vom Startbildschirm, ohne Adressleiste und auch offline.</p>
+    {{- end }}
+    <button id="btn-install" class="btn {{ if $bar }}btn-install{{ else }}btn-primary btn-full{{ end }}" type="button" hidden>Installieren</button>
+    <button id="btn-install-howto" class="btn {{ if $bar }}btn-install{{ else }}btn-secondary btn-full{{ end }}" type="button" hidden>So geht's</button>
+    {{- if $bar }}
+    <button id="btn-install-dismiss" class="btn-install-dismiss" type="button" aria-label="Hinweis ausblenden">×</button>
+    {{- end }}
+  </div>
+  <p id="install-howto" class="install-howto{{ if not $bar }} section-hint{{ end }}" hidden></p>
+</div>
