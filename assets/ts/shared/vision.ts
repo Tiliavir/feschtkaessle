@@ -1,7 +1,9 @@
 // ─── Photo → price list via a vision model (opt-in) ──────────────────────────
 // The user brings their own API key. It stays on this device (own localStorage key,
 // not part of the app state) and is only sent to the chosen provider, with the photo.
-type VisionProvider = 'anthropic' | 'openai';
+type VisionProvider = 'anthropic' | 'openai' | 'gemini';
+
+const PROVIDERS: VisionProvider[] = ['anthropic', 'openai', 'gemini'];
 
 interface VisionSettings {
   provider: VisionProvider | null;
@@ -15,6 +17,7 @@ const MAX_IMAGE_SIDE = 1568;
 const DEFAULT_MODELS: Record<VisionProvider, string> = {
   anthropic: 'claude-haiku-5-5',
   openai: 'gpt-6-luna',
+  gemini: 'gemini-3.5-flash-lite',
 };
 
 function defaultSettings(): VisionSettings {
@@ -24,9 +27,9 @@ function defaultSettings(): VisionSettings {
 function loadSettings(): VisionSettings {
   try {
     const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? 'null') as Partial<VisionSettings> | null;
-    if (!raw || (raw.provider !== 'anthropic' && raw.provider !== 'openai')) return defaultSettings();
+    if (!raw || !PROVIDERS.includes(raw.provider as VisionProvider)) return defaultSettings();
     return {
-      provider: raw.provider,
+      provider: raw.provider as VisionProvider,
       apiKey: typeof raw.apiKey === 'string' ? raw.apiKey : '',
       model: typeof raw.model === 'string' ? raw.model : '',
     };
@@ -143,7 +146,43 @@ function openaiRequest(apiKey: string, model: string, image: EncodedImage, promp
   };
 }
 
+function geminiRequest(apiKey: string, model: string, image: EncodedImage, prompt: string): ProviderRequest {
+  return {
+    url: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
+    body: {
+      contents: [
+        {
+          role: 'user',
+          parts: [{ inlineData: { mimeType: image.mediaType, data: image.base64 } }, { text: prompt }],
+        },
+      ],
+    },
+    readText(response) {
+      const candidates = (response as { candidates?: { content?: { parts?: { text?: unknown }[] } }[] }).candidates;
+      const parts = Array.isArray(candidates) ? candidates[0]?.content?.parts : undefined;
+      if (!Array.isArray(parts)) return '';
+      return parts
+        .map((part) => part.text)
+        .filter((text): text is string => typeof text === 'string')
+        .join('\n');
+    },
+  };
+}
+
+const REQUESTS: Record<
+  VisionProvider,
+  (apiKey: string, model: string, image: EncodedImage, prompt: string) => ProviderRequest
+> = {
+  anthropic: anthropicRequest,
+  openai: openaiRequest,
+  gemini: geminiRequest,
+};
+
 function errorMessage(status: number, body: unknown): string {
+  if (status === 400 && /api key/i.test(JSON.stringify(body))) {
+    return 'Der API-Schlüssel wurde abgelehnt. Bitte in den Einstellungen prüfen.';
+  }
   if (status === 401 || status === 403) return 'Der API-Schlüssel wurde abgelehnt. Bitte in den Einstellungen prüfen.';
   if (status === 429) return 'Zu viele Anfragen oder kein Guthaben beim Anbieter. Später erneut versuchen.';
   const detail = (body as { error?: { message?: unknown } } | null)?.error?.message;
@@ -160,10 +199,7 @@ async function readPriceList(file: Blob, settings: VisionSettings, prompt: strin
   const image = await encodeImage(file);
   const model = modelOf({ ...settings, provider: settings.provider });
   const apiKey = settings.apiKey.trim();
-  const request =
-    settings.provider === 'anthropic'
-      ? anthropicRequest(apiKey, model, image, prompt)
-      : openaiRequest(apiKey, model, image, prompt);
+  const request = REQUESTS[settings.provider](apiKey, model, image, prompt);
   let response: Response;
   try {
     response = await fetch(request.url, {

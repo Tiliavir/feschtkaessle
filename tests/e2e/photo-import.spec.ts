@@ -20,6 +20,9 @@ test('settings store provider, key and model on this device', async ({ page }) =
   await expect(page.locator('#vision-details')).toBeHidden();
   await page.selectOption('#vision-provider', 'anthropic');
   await expect(page.locator('#vision-model')).toHaveAttribute('placeholder', 'claude-haiku-5-5');
+  await page.selectOption('#vision-provider', 'gemini');
+  await expect(page.locator('#vision-model')).toHaveAttribute('placeholder', 'gemini-3.5-flash-lite');
+  await page.selectOption('#vision-provider', 'anthropic');
   await page.fill('#vision-key', ' sk-ant-test ');
   await page.locator('#vision-key').blur();
 
@@ -124,4 +127,50 @@ test('reading a photo offline explains why it does not work', async ({ page, con
   await page.setInputFiles('#photo-file', PHOTO);
 
   await expect(page.locator('#photo-error')).toHaveText('Keine Internetverbindung.');
+});
+
+test('a photo is read via Gemini', async ({ page }) => {
+  await configure(page, { provider: 'gemini', apiKey: 'AIza-test', model: '' });
+  let sent: { url: string; key: string; body: Record<string, unknown> } | null = null;
+  await page.route('https://generativelanguage.googleapis.com/**', async (route) => {
+    sent = {
+      url: route.request().url(),
+      key: route.request().headers()['x-goog-api-key'],
+      body: route.request().postDataJSON(),
+    };
+    await route.fulfill({
+      status: 200,
+      headers: { 'access-control-allow-origin': '*' },
+      json: { candidates: [{ content: { parts: [{ text: 'Brezel 1,50\nKaffee 2,00' }] } }] },
+    });
+  });
+
+  await page.goto('/create/');
+  await page.click('#price-list summary');
+  await page.setInputFiles('#photo-file', PHOTO);
+
+  await expect(page.locator('#price-list-text')).toHaveValue('Brezel 1,50\nKaffee 2,00');
+  const request = sent as unknown as { url: string; key: string; body: Record<string, unknown> };
+  expect(request.url).toBe(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent',
+  );
+  expect(request.key).toBe('AIza-test');
+  const parts = (request.body.contents as { parts: { inlineData?: { mimeType: string } }[] }[])[0].parts;
+  expect(parts[0].inlineData?.mimeType).toBe('image/jpeg');
+});
+
+test('Gemini reports an invalid key as rejected', async ({ page }) => {
+  await configure(page, { provider: 'gemini', apiKey: 'wrong', model: '' });
+  await page.route('https://generativelanguage.googleapis.com/**', (route) =>
+    route.fulfill({
+      status: 400,
+      headers: { 'access-control-allow-origin': '*' },
+      json: { error: { code: 400, message: 'API key not valid. Please pass a valid API key.' } },
+    }),
+  );
+  await page.goto('/create/');
+  await page.click('#price-list summary');
+  await page.setInputFiles('#photo-file', PHOTO);
+
+  await expect(page.locator('#photo-error')).toContainText('API-Schlüssel wurde abgelehnt');
 });
