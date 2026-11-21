@@ -222,14 +222,20 @@ const CreateApp = (() => {
     UI.on('btn-photo', 'click', () => {
       (document.getElementById('photo-file') as HTMLInputElement | null)?.click();
     });
-    const fileInput = document.getElementById('photo-file') as HTMLInputElement | null;
-    fileInput?.addEventListener('change', () => {
-      const file = fileInput.files?.[0];
-      if (!file) return;
-      void readPhoto(file).finally(() => {
-        fileInput.value = '';
-      });
+    UI.on('btn-photo-pick', 'click', () => {
+      (document.getElementById('photo-pick') as HTMLInputElement | null)?.click();
     });
+    // `photo-file` opens the camera (capture), `photo-pick` the gallery.
+    for (const id of ['photo-file', 'photo-pick']) {
+      const fileInput = document.getElementById(id) as HTMLInputElement | null;
+      fileInput?.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
+        if (!file) return;
+        void readPhoto(file).finally(() => {
+          fileInput.value = '';
+        });
+      });
+    }
   }
 
   async function connect(): Promise<void> {
@@ -257,12 +263,14 @@ const CreateApp = (() => {
   }
 
   async function readPhoto(file: File): Promise<void> {
-    const button = document.getElementById('btn-photo') as HTMLButtonElement | null;
+    const buttons = ['btn-photo', 'btn-photo-pick']
+      .map((id) => document.getElementById(id) as HTMLButtonElement | null)
+      .filter((b): b is HTMLButtonElement => b !== null);
     const prompt = document.getElementById('price-list-prompt') as HTMLTextAreaElement | null;
     if (!prompt) return;
     UI.setText('photo-error', '');
     UI.setText('photo-status', 'Foto wird ausgelesen … das dauert ein paar Sekunden.');
-    if (button) button.disabled = true;
+    for (const b of buttons) b.disabled = true;
     try {
       const text = await Vision.readPriceList(file, prompt.value);
       UI.setText('photo-status', '');
@@ -272,7 +280,7 @@ const CreateApp = (() => {
       UI.setText('photo-error', e instanceof VisionError ? e.message : 'Das Foto konnte nicht ausgelesen werden.');
       if (e instanceof VisionError && !Vision.isConnected()) renderConnection();
     } finally {
-      if (button) button.disabled = false;
+      for (const b of buttons) b.disabled = false;
     }
   }
 

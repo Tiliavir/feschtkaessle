@@ -126,6 +126,23 @@ test('a photo is read via OpenRouter and its items are ready for review', async 
   expect(content[1].image_url?.url).toMatch(/^data:image\/jpeg;base64,.{100}/);
 });
 
+test('the photo button opens the camera, the second button the gallery', async ({ page }) => {
+  await connected(page);
+  await page.route(CHAT_URL, (route) =>
+    route.fulfill({ status: 200, headers: CORS, json: { choices: [{ message: { content: 'Bier 4,00' } }] } }),
+  );
+
+  await page.goto('/create/');
+  await expect(page.locator('#photo-file')).toHaveAttribute('capture', 'environment');
+  await expect(page.locator('#photo-pick')).not.toHaveAttribute('capture');
+
+  const camera = page.waitForEvent('filechooser');
+  await page.click('#start-photo');
+  await (await camera).setFiles([]);
+  await pickPhoto(page, '#btn-photo-pick');
+  await expect(page.locator('#setup-items-list .setup-item-name')).toHaveText(['Bier']);
+});
+
 test('an expired connection is reported and nothing is added', async ({ page }) => {
   await connected(page);
   await page.route(CHAT_URL, (route) =>
