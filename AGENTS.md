@@ -38,7 +38,7 @@ Each page app (e.g. `assets/ts/app.ts`, `assets/ts/create/create-app.ts`) import
 
 ### Installable app (PWA)
 
-- **`assets/manifest.webmanifest`** — Hugo template (name and description from `hugo.toml`), published on the home page build; standalone display, relative `start_url`/`scope` (works under the GitHub Pages subpath). Icons in `static/icons/`: 192/512 PNG `any` (from `static/favicon.svg`) and `maskable` (from `static/icons/icon-maskable.svg`); regenerate with `rsvg-convert -w <size> -h <size> <svg> -o <png>`.
+- **`assets/manifest.webmanifest`** — Hugo template (name and description from `hugo.toml`), published on the home page build; standalone display, relative `start_url`/`scope` (works under the GitHub Pages subpath). Icon: a cash register (Registrierkasse) in the app colours. Icons in `static/icons/`: 192/512 PNG `any` (from `static/favicon.svg`), `maskable` and the 180 px `apple-touch-icon.png` (both from `static/icons/icon-maskable.svg`, content scaled into the safe zone); regenerate with `rsvg-convert -w <size> -h <size> <svg> -o <png>`.
 - **`assets/ts/sw/sw.ts`** — service worker, built by `layouts/partials/pwa.html` to `sw.js` in production builds only (`hugo serve` gets none). Precaches all pages (self-contained, inline CSS/JS) and icons; cache-first. Cache version = build time, so every deploy refreshes the cache. Has its own `tsconfig.json` (WebWorker lib).
 - **`assets/ts/register-sw.ts`** — registers the service worker.
 
