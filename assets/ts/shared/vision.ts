@@ -51,7 +51,7 @@ function isConnected(): boolean {
 // ─── Connect (OAuth PKCE) ─────────────────────────────────────────────────────
 function base64url(bytes: Uint8Array): string {
   let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
+  for (const byte of bytes) binary += String.fromCodePoint(byte);
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
