@@ -1,5 +1,5 @@
-import type { EventConfig, Item } from '../shared/index';
-import { EventConfigs, ItemEditor, Models, Storage, UI } from '../shared/index';
+import type { EventConfig, Item, RejectedLine } from '../shared/index';
+import { EventConfigs, ItemEditor, Models, PriceList, Storage, UI } from '../shared/index';
 
 // ─── Create Page ──────────────────────────────────────────────────────────────
 const CreateApp = (() => {
@@ -94,6 +94,11 @@ const CreateApp = (() => {
       });
     }
 
+    UI.on('btn-price-list-apply', 'click', applyPriceList);
+    UI.on('btn-copy-prompt', 'click', () => {
+      void copyPrompt();
+    });
+
     UI.on('btn-start-event', 'click', () => {
       const nameInput = document.getElementById('event-name') as HTMLInputElement;
       const name = nameInput ? nameInput.value.trim() : '';
@@ -118,6 +123,45 @@ const CreateApp = (() => {
         location.href = document.baseURI;
       });
     });
+  }
+
+  // Appends the parsed items, so a long list can be pasted in parts.
+  function applyPriceList(): void {
+    const textarea = document.getElementById('price-list-text') as HTMLTextAreaElement | null;
+    if (!textarea) return;
+    const result = PriceList.parse(textarea.value);
+    if (result.items.length > 0) {
+      replaceItems([...pendingItems, ...EventConfigs.toItems({ name: '', items: result.items })]);
+    }
+    UI.setText('price-list-result', `${result.items.length} Artikel übernommen.`);
+    renderRejected(result.rejected);
+    textarea.value = result.rejected.map((r) => r.text).join('\n');
+  }
+
+  function renderRejected(rejected: RejectedLine[]): void {
+    const box = document.getElementById('price-list-rejected');
+    const list = document.getElementById('price-list-rejected-lines');
+    if (!box || !list) return;
+    list.replaceChildren(
+      ...rejected.map((r) => {
+        const li = document.createElement('li');
+        li.textContent = `Zeile ${r.line}: „${r.text}" (${r.reason})`;
+        return li;
+      }),
+    );
+    box.hidden = rejected.length === 0;
+  }
+
+  async function copyPrompt(): Promise<void> {
+    const prompt = document.getElementById('price-list-prompt') as HTMLTextAreaElement | null;
+    if (!prompt) return;
+    try {
+      await navigator.clipboard.writeText(prompt.value);
+      UI.setText('prompt-status', 'Auftrag kopiert.');
+    } catch {
+      prompt.select();
+      UI.setText('prompt-status', 'Bitte den markierten Text kopieren.');
+    }
   }
 
   async function importFile(file: File): Promise<void> {

@@ -46,6 +46,29 @@
       <button id="btn-add-item" class="btn btn-secondary">+ Artikel</button>
     </div>
 
+    <details id="price-list" class="price-list">
+      <summary>Preisliste als Text einfügen</summary>
+      <p class="section-hint">
+        Ein Artikel pro Zeile, der Preis steht am Ende, z.&nbsp;B. „Bratwurst 3,50" oder „Pfand zurück -2".
+      </p>
+      <label for="price-list-text" class="field-label">Preisliste</label>
+      <textarea id="price-list-text" class="text-input price-list-text" rows="6"></textarea>
+      <button id="btn-price-list-apply" class="btn btn-secondary btn-full">Artikel übernehmen</button>
+      <p id="price-list-result" class="info-text" aria-live="polite"></p>
+      <div id="price-list-rejected" class="price-list-rejected" hidden>
+        <p class="error-text">Diese Zeilen wurden nicht übernommen:</p>
+        <ul id="price-list-rejected-lines"></ul>
+      </div>
+      <p class="section-hint">
+        Foto der Preistafel? Kopiere diesen Auftrag in eine KI-App (z.&nbsp;B. Claude, ChatGPT, Gemini),
+        hänge das Foto an und füge die Antwort oben ein.
+      </p>
+      <label for="price-list-prompt" class="field-label">Auftrag für die KI-App</label>
+      <textarea id="price-list-prompt" class="text-input price-list-text" rows="4" readonly>Lies die Preisliste auf dem Foto aus. Antworte nur mit den Artikeln, einer pro Zeile im Format „Name Preis", z. B. „Bratwurst 3,50". Rückgaben wie Pfand mit Minus, z. B. „Pfand zurück -2". Keine Überschriften, keine Erklärungen.</textarea>
+      <button id="btn-copy-prompt" class="btn btn-secondary btn-full">Auftrag kopieren</button>
+      <p id="prompt-status" class="info-text" aria-live="polite"></p>
+    </details>
+
     <div id="setup-items-list" class="setup-items-list"></div>
   </section>
 
