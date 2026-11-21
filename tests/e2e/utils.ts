@@ -1,3 +1,5 @@
+import type { Page } from '@playwright/test';
+
 export const STORAGE_KEY = 'feschtkaessle_app_v1';
 
 export function buildSeedState() {
@@ -86,4 +88,10 @@ export function configHash(config: unknown): string {
   const bytes = new TextEncoder().encode(JSON.stringify(config));
   const base64 = btoa(Array.from(bytes, (byte) => String.fromCodePoint(byte)).join(''));
   return `#cfg=${base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
+}
+
+// Opens the create page and picks "Liste eintippen" on the start screen.
+export async function openManualSetup(page: Page) {
+  await page.goto('/create/');
+  await page.click('#start-manual');
 }
