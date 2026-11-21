@@ -11,7 +11,7 @@ The app is a **Multi-Page Application (MPA)** built with [Hugo](https://gohugo.i
 | Page | Layout | Purpose |
 |---|---|---|
 | Cashier | `layouts/index.html` | Main cash register: item grid, transaction recording |
-| Create event | `layouts/partials/pages/create.html` | Start screen (cards: photo, template file, example, manual) → setup screen (name, items, liability) |
+| Create event | `layouts/partials/pages/create.html` | Start screen (cards: photo, template file, example, manual) → setup screen (name, items, liability). Manual = text field first (one item per line; unclear lines: correct or skip); the single-item form (name, price, colour) is collapsed on the setup screen |
 | Edit event | `layouts/edit/list.html` | Edit items of an existing event |
 | Settings | `layouts/settings/list.html` | Overview of active event, all events list |
 | Statistics | `layouts/stats/list.html` | Revenue, items sold, transaction chart |

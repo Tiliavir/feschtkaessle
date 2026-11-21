@@ -30,7 +30,7 @@
         <svg class="start-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
         <span class="start-text">
           <strong>Liste eintippen</strong>
-          <span class="start-desc">Artikel einzeln anlegen oder eine Preisliste als Text einfügen.</span>
+          <span class="start-desc">Ein Artikel pro Zeile – Farben und Feinheiten danach.</span>
         </span>
       </button>
     </div>
@@ -77,6 +77,25 @@
         <button id="btn-ki-apply" class="btn btn-primary btn-full" type="button">Antwort übernehmen</button>
       </div>
     </section>
+
+    <section id="manual-panel" class="setup-section photo-panel" hidden>
+      <h2 class="section-title">Artikel eintippen</h2>
+      <p class="section-hint">
+        Ein Artikel pro Zeile, der Preis steht am Ende, z.&nbsp;B. „Bratwurst 3,50" oder „Pfand zurück -2".
+        Farben, Reihenfolge und weitere Artikel kommen im nächsten Schritt.
+      </p>
+      <label for="manual-text" class="field-label">Artikel und Preise</label>
+      <textarea id="manual-text" class="text-input price-list-text" rows="8" placeholder="Bratwurst 3,50&#10;Bier 4,00&#10;Pfand zurück -2"></textarea>
+      <div id="manual-rejected" class="price-list-rejected" hidden>
+        <p id="manual-rejected-title" class="error-text"></p>
+        <ul id="manual-rejected-lines"></ul>
+        <div class="export-row">
+          <button id="btn-manual-fix" class="btn btn-secondary btn-full" type="button">Korrigieren</button>
+          <button id="btn-manual-skip" class="btn btn-ghost btn-full" type="button">Diese Zeilen überspringen</button>
+        </div>
+      </div>
+      <button id="btn-manual-next" class="btn btn-primary btn-full" type="button" disabled>Weiter</button>
+    </section>
   </div>
 </div>
 
@@ -96,53 +115,46 @@
         placeholder="z.B. Fastnachtsfeuer 2026"
         autocomplete="off"
       >
-      <p id="config-notice" class="info-text" aria-live="polite"></p>
     </div>
 
     <section class="setup-section">
       <h2 class="section-title">Artikel</h2>
+      <p id="config-notice" class="info-text" aria-live="polite"></p>
       <div id="setup-items-list" class="setup-items-list"></div>
 
-      <div class="item-form">
-        <label for="item-name" class="field-label">Artikelname</label>
-        <input
-          id="item-name"
-          type="text"
-          class="text-input"
-          placeholder="Artikelname"
-          autocomplete="off"
-        >
-        <label for="item-price" class="field-label">Preis (€)</label>
-        <input
-          id="item-price"
-          type="number"
-          class="text-input"
-          placeholder="Preis (€)"
-          step="0.01"
-        >
-        <div class="color-row">
-          <label for="item-color" class="field-label">Farbe</label>
-          <input id="item-color" type="color" value="#cccccc" class="color-input">
-        </div>
-        <button id="btn-add-item" class="btn btn-secondary">+ Artikel</button>
+      <div id="price-list-rejected" class="price-list-rejected" hidden>
+        <p class="error-text">Diese Zeilen wurden nicht übernommen:</p>
+        <ul id="price-list-rejected-lines"></ul>
       </div>
-      <p class="pfand-hint">
-        Tipp: „Pfand" kann mit negativem Preis eingetragen werden, z.B. -2,00 €
-      </p>
 
-      <details id="price-list" class="price-list">
-        <summary>Preisliste als Text einfügen</summary>
-        <p class="section-hint">
-          Ein Artikel pro Zeile, der Preis steht am Ende, z.&nbsp;B. „Bratwurst 3,50" oder „Pfand zurück -2".
-        </p>
-        <label for="price-list-text" class="field-label">Preisliste</label>
-        <textarea id="price-list-text" class="text-input price-list-text" rows="6"></textarea>
-        <button id="btn-price-list-apply" class="btn btn-secondary btn-full">Artikel übernehmen</button>
-        <p id="price-list-result" class="info-text" aria-live="polite"></p>
-        <div id="price-list-rejected" class="price-list-rejected" hidden>
-          <p class="error-text">Diese Zeilen wurden nicht übernommen:</p>
-          <ul id="price-list-rejected-lines"></ul>
+      <details id="item-add" class="item-add">
+        <summary>+ Artikel hinzufügen</summary>
+        <div class="item-form">
+          <label for="item-name" class="field-label">Artikelname</label>
+          <input
+            id="item-name"
+            type="text"
+            class="text-input"
+            placeholder="Artikelname"
+            autocomplete="off"
+          >
+          <label for="item-price" class="field-label">Preis (€)</label>
+          <input
+            id="item-price"
+            type="number"
+            class="text-input"
+            placeholder="Preis (€)"
+            step="0.01"
+          >
+          <div class="color-row">
+            <label for="item-color" class="field-label">Farbe</label>
+            <input id="item-color" type="color" value="#cccccc" class="color-input">
+          </div>
+          <button id="btn-add-item" class="btn btn-secondary">+ Artikel</button>
         </div>
+        <p class="pfand-hint">
+          Tipp: „Pfand" kann mit negativem Preis eingetragen werden, z.B. -2,00 €
+        </p>
       </details>
     </section>
   </div>

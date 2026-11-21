@@ -1,14 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { openManualSetup, stubStoragePersistence } from './utils';
+import { addSingleItem, openManualSetup, stubStoragePersistence } from './utils';
 
 test('create flow enables start and navigates to cashier', async ({ page }) => {
   await openManualSetup(page);
 
   await page.fill('#event-name', 'Vereinsfest');
-  await page.fill('#item-name', 'Wasser');
-  await page.fill('#item-price', '1.50');
-  await page.click('#btn-add-item');
-
   await page.check('#accept-liability');
 
   const startButton = page.locator('#btn-start-event');
@@ -21,14 +17,7 @@ test('create flow enables start and navigates to cashier', async ({ page }) => {
 
 test('create edits, cancels and removes pending items inline', async ({ page }) => {
   await openManualSetup(page);
-  for (const [name, price] of [
-    ['Wasser', '1.50'],
-    ['Bier', '3'],
-  ]) {
-    await page.fill('#item-name', name);
-    await page.fill('#item-price', price);
-    await page.click('#btn-add-item');
-  }
+  await addSingleItem(page, 'Bier', '3');
   const rows = page.locator('#setup-items-list .setup-item-row');
   await expect(rows).toHaveCount(2);
 
@@ -90,9 +79,6 @@ test('starting an event requests persistent storage', async ({ page }) => {
   await page.addInitScript(stubStoragePersistence, true);
   await openManualSetup(page);
   await page.fill('#event-name', 'Vereinsfest');
-  await page.fill('#item-name', 'Wasser');
-  await page.fill('#item-price', '1.50');
-  await page.click('#btn-add-item');
   await page.check('#accept-liability');
 
   await page.click('#btn-start-event');
