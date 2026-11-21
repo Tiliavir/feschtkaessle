@@ -39,7 +39,12 @@ function respond(int $status, string $result): never
 function fail(int $status, string $reason): never
 {
     error_log('feschtkaessle feedback: ' . $reason);
-    respond($status, $status === 429 ? 'rate-limit' : ($status >= 500 ? 'server-error' : 'invalid'));
+    $result = match (true) {
+        $status === 429 => 'rate-limit',
+        $status >= 500 => 'server-error',
+        default => 'invalid',
+    };
+    respond($status, $result);
 }
 
 function loadConfig(): array
@@ -47,7 +52,7 @@ function loadConfig(): array
     if (!is_file(CONFIG_FILE)) {
         fail(500, 'config file missing');
     }
-    $config = require CONFIG_FILE;
+    $config = require_once CONFIG_FILE;
     foreach (['token', 'repository', 'salt'] as $key) {
         if (!is_array($config) || !is_string($config[$key] ?? null) || $config[$key] === '') {
             fail(500, 'config key missing: ' . $key);

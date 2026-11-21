@@ -34,7 +34,13 @@ FAILED=0
 
 post() { curl -s -o "$WORK/body" -D "$WORK/headers" -w '%{http_code}' -H "Origin: ${POST_ORIGIN:-$ORIGIN}" "$URL" "$@"; }
 check() {
-  if [ "$2" = "$3" ]; then echo "ok   $1"; else echo "FAIL $1: expected '$3', got '$2'"; FAILED=1; fi
+  local name=$1 actual=$2 expected=$3
+  if [[ "$actual" == "$expected" ]]; then
+    echo "ok   $name"
+  else
+    echo "FAIL $name: expected '$expected', got '$actual'"
+    FAILED=1
+  fi
 }
 issues() { find "$WORK/fake" -name 'request-*.json' | wc -l | tr -d ' '; }
 
@@ -73,5 +79,5 @@ check "GitHub failure is reported" "$(post --form-string nervt=z --form-string "
 rm "$WORK/fake/status.txt"
 check "rate limit per address" "$(post --form-string nervt=z --form-string "started=$OLD")" 429
 
-[ -n "${SHOW_ISSUE:-}" ] && php -r 'echo json_decode(file_get_contents($argv[1]), true)["issue"]["body"];' "$ISSUE"
+[[ -n "${SHOW_ISSUE:-}" ]] && php -r 'echo json_decode(file_get_contents($argv[1]), true)["issue"]["body"];' "$ISSUE"
 exit $FAILED
