@@ -9,7 +9,9 @@ declare const SW_VERSION: string;
 declare const SW_URLS: string[];
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
-const CACHE_PREFIX = 'kassierer-';
+const CACHE_PREFIX = 'feschtkaessle-';
+// Caches of versions up to 0.x, when the app was called "MVW Kassierer".
+const LEGACY_CACHE_PREFIX = 'kassierer-';
 const CACHE_NAME = `${CACHE_PREFIX}${SW_VERSION}`;
 
 sw.addEventListener('install', (event) => {
@@ -27,7 +29,11 @@ sw.addEventListener('activate', (event) => {
       .keys()
       .then((keys) =>
         Promise.all(
-          keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map((key) => caches.delete(key)),
+          keys
+            .filter(
+              (key) => key.startsWith(LEGACY_CACHE_PREFIX) || (key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME),
+            )
+            .map((key) => caches.delete(key)),
         ),
       )
       .then(() => sw.clients.claim()),

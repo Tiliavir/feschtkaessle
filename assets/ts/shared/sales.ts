@@ -5,7 +5,7 @@ import type { AppState } from './storage';
 // ─── Sales export and merge ───────────────────────────────────────────────────
 // Several people sell at the same fest, each on their own device. Each device
 // exports its sales; one device imports the others to see the evening's total.
-const EXPORT_TYPE = 'kassierer-sales';
+const EXPORT_TYPE = 'feschtkaessle-sales';
 const EXPORT_VERSION = 1;
 
 interface SalesExport {

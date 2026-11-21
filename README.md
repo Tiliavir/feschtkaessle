@@ -184,7 +184,7 @@ npm run build
 To clear all app data and start fresh, open the browser developer console and run:
 
 ```javascript
-localStorage.removeItem('kassierer_app_v1');
+localStorage.removeItem('feschtkaessle_app_v1');
 location.reload();
 ```
 

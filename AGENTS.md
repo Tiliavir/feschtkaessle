@@ -26,7 +26,7 @@ The app is a **Multi-Page Application (MPA)** built with [Hugo](https://gohugo.i
 - **`assets/ts/shared/item-editor.ts`** — The item list of the create and edit pages (add form, inline edit, remove, reorder). Each page passes an `ItemStore` (`getItems`/`setItems`): create keeps items in memory, edit writes them via `Storage.setEventItems`. Exports `ItemEditor` namespace.
 - **`assets/ts/shared/config.ts`** — Shareable event config `{ name, items }`: validation, JSON file export/import, share link `create/#cfg=<base64url JSON>` (also used for "Als Vorlage"). Exports `EventConfigs` namespace.
 - **`assets/ts/shared/price-list.ts`** — Parser for pasted price lists (one item per line, last number = price; unclear lines are returned, not dropped). Exports `PriceList` namespace.
-- **`assets/ts/shared/sales.ts`** — Sales export (JSON, `type: "kassierer-sales"`, version 1) for merging devices, merge (dedupe by transaction id, items matched by name + price), CSV statement (`;`, decimal comma, UTF-8 BOM). Exports `Sales` namespace.
+- **`assets/ts/shared/sales.ts`** — Sales export (JSON, `type: "feschtkaessle-sales"`, version 1) for merging devices, merge (dedupe by transaction id, items matched by name + price), CSV statement (`;`, decimal comma, UTF-8 BOM). Exports `Sales` namespace.
 - **`assets/ts/shared/index.ts`** — Re-exports all shared modules.
 
 Each page app (e.g. `assets/ts/app.ts`, `assets/ts/create/create-app.ts`) imports from `./shared/index`.
@@ -44,7 +44,7 @@ Each page app (e.g. `assets/ts/app.ts`, `assets/ts/create/create-app.ts`) import
 
 ## localStorage Schema
 
-Single key `kassierer_app_v1` storing:
+Single key `feschtkaessle_app_v1` storing:
 ```json
 {
   "events": [
@@ -78,7 +78,7 @@ Single key `kassierer_app_v1` storing:
 - `deviceId` identifies this device's transactions when sales of several devices are merged; `deviceName` is its label in the statement.
 - `importedItems`: items from merged sales that match no own item (name + price); used for statistics only, not shown at the cashier.
 - `devices`: names of other devices whose sales were merged.
-- `Storage.loadState()` migrates older data (adds ids, `deviceId`, empty `importedItems`/`devices`) and saves it once, so transaction ids stay stable.
+- `Storage.loadState()` moves data from the legacy key `kassierer_app_v1` (≤ 0.x) and migrates older data (adds ids, `deviceId`, empty `importedItems`/`devices`) and saves it once, so transaction ids stay stable.
 
 ## Build Commands
 
@@ -216,10 +216,10 @@ npm run compile && npx playwright test tests/e2e/cashier.spec.ts -g "test name"
 
 ## Key Conventions
 
-1. **Data persistence**: All data in localStorage under key `kassierer_app_v1`
+1. **Data persistence**: All data in localStorage under key `feschtkaessle_app_v1`
 2. **View transitions**: Use CSS View Transitions API with direction handling
 3. **Touch support**: Handle both mouse and touch events for drag-and-drop
 4. **German locale**: All user-facing text in German
 5. **No external dependencies**: Pure browser APIs, no npm runtime deps
 6. **Name in one place**: the app name is `title` and the tagline `params.description` in `hugo.toml`; page titles, meta descriptions and the web app manifest (`assets/manifest.webmanifest`, a Hugo template) read them from there.
-7. **Internal identifiers keep the old name**: `kassierer_app_v1`, `kassierer_vision_v1`, the `kassierer-` cache prefix and the `kassierer-sales` export type. Renaming them would lose data or break existing exports.
+7. **Legacy name**: up to 0.x the app was "MVW Kassierer". `Storage.loadState()` moves data from the old key `kassierer_app_v1` to `feschtkaessle_app_v1` once; the service worker deletes old `kassierer-` caches. The photo settings key is `feschtkaessle_vision_v1`, the sales export type `feschtkaessle-sales`.

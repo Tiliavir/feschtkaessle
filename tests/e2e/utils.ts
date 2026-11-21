@@ -1,4 +1,4 @@
-export const STORAGE_KEY = 'kassierer_app_v1';
+export const STORAGE_KEY = 'feschtkaessle_app_v1';
 
 export function buildSeedState() {
   const eventId = 'event-1';
