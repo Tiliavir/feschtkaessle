@@ -19,3 +19,5 @@ assetDir = 'assets'
 [params]
   description = 'Die einfache Kasse für Vereine & Feste'
   author = 'Markus Lindenmann'
+  # Shared feedback endpoint (Tiliavir/public-feedback, see docs/feedback.md). Empty: no feedback entry in the app.
+  feedbackEndpoint = 'https://www.mv-wollbach.de/feedback.php'

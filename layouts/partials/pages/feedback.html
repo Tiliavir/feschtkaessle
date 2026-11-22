@@ -1,0 +1,63 @@
+{{- /* Posts to the shared feedback endpoint of Tiliavir/public-feedback (docs/feedback.md). */ -}}
+{{- $pkg := os.ReadFile "package.json" | transform.Unmarshal -}}
+<header class="app-header">
+  <button id="btn-back-settings" class="btn btn-back" data-href="{{ "settings/" | relURL }}">
+    <span aria-hidden="true">←</span> Zurück
+  </button>
+  <h1>Feedback</h1>
+</header>
+
+<main class="settings-main feedback-main">
+  <p id="feedback-unavailable" class="section-hint" {{ with site.Params.feedbackEndpoint }}hidden{{ end }}>
+    Feedback ist gerade nicht möglich.
+  </p>
+
+  <form id="feedback-form" class="feedback-form" data-endpoint="{{ site.Params.feedbackEndpoint }}" data-version="{{ $pkg.version }}" {{ if not site.Params.feedbackEndpoint }}hidden{{ end }} novalidate>
+    <p class="section-hint">
+      Ein paar kurze Fragen – beantworte nur, was dir einfällt. Kein Name, keine Anmeldung.
+    </p>
+
+    <input type="hidden" name="source" value="feschtkaessle">
+    {{- range hugo.Data.feedback.questions }}
+    <input type="hidden" name="questions[{{ .id }}]" value="{{ .question }}">
+    {{- if eq .type "choice" }}
+    <fieldset class="settings-section feedback-question">
+      <legend class="section-title">{{ .question }}</legend>
+      <div class="feedback-choices">
+        {{- $id := .id }}
+        {{- range .options }}
+        <label class="feedback-choice">
+          <input type="radio" name="answers[{{ $id }}]" value="{{ .label }}">
+          <span>{{ .label }}</span>
+        </label>
+        {{- end }}
+      </div>
+    </fieldset>
+    {{- else }}
+    <div class="settings-section feedback-question">
+      <label for="fb-{{ .id }}" class="section-title">{{ .question }}</label>
+      <textarea id="fb-{{ .id }}" name="answers[{{ .id }}]" class="text-input feedback-text" rows="3" maxlength="{{ .maxLength }}"></textarea>
+    </div>
+    {{- end }}
+    {{- end }}
+
+    <div class="visually-hidden" aria-hidden="true">
+      <label for="fb-website">Webseite</label>
+      <input id="fb-website" name="website" type="text" tabindex="-1" autocomplete="off">
+    </div>
+
+    <p class="section-hint">
+      Deine Antworten gehen an den Entwickler und werden in einem nicht öffentlichen Projekt bei GitHub gespeichert.
+      Bitte schreib keine persönlichen Daten hinein. Mitgeschickt werden nur App-Version, ob die App installiert ist
+      und ob du am Handy oder Computer bist.
+    </p>
+    <p id="feedback-error" class="error-text" aria-live="polite"></p>
+    <button id="btn-feedback-send" class="btn btn-primary btn-full" type="submit">Feedback senden</button>
+  </form>
+
+  <section id="feedback-thanks" class="settings-section" hidden>
+    <h2 class="section-title">Danke!</h2>
+    <p class="section-hint">Deine Rückmeldung ist angekommen und hilft, die Kasse besser zu machen.</p>
+    <a href="./" class="btn btn-secondary btn-full">Zur Kasse</a>
+  </section>
+</main>
