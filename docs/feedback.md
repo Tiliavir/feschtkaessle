@@ -13,9 +13,9 @@ Markus's sites and apps), which files an issue labelled `feedback`, `ungeprüft`
   time 3 s). No event or sales data.
 - **Request:** `fetch` with `FormData` and `Accept: application/json` (no CORS preflight).
   Offline, rate limit or server errors show a message; the answers stay in the form.
-- **Switch:** `params.feedbackEndpoint` in `hugo.toml`. Empty: no feedback entry in the app.
-  Live value once the endpoint is deployed: `https://www.mv-wollbach.de/feedback.php`
-  (with `www.`, the site redirects other hosts and the POST would be lost).
+- **Switch:** `params.feedbackEndpoint` in `hugo.toml`, live `https://www.mv-wollbach.de/feedback.php`
+  (with `www.`, the site redirects other hosts and the POST would be lost). Empty: no feedback
+  entry in the app.
 - **Tests:** `tests/e2e/feedback.spec.ts` (the endpoint is injected into the page and mocked).
   The endpoint itself is tested in `Tiliavir/public-feedback`.
 

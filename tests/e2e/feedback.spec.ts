@@ -1,26 +1,20 @@
 import { expect, type Page, test } from '@playwright/test';
 
-// The build has no endpoint configured (hugo.toml `feedbackEndpoint`); tests inject one into the page.
-const ENDPOINT = 'https://feedback.test/feedback.php';
+// The configured endpoint (hugo.toml `feedbackEndpoint`); every test mocks it, nothing is sent for real.
+const ENDPOINT = 'https://www.mv-wollbach.de/feedback.php';
 const CORS = { 'Access-Control-Allow-Origin': '*' };
 
 async function openFeedback(page: Page) {
-  await page.route('**/feedback/', async (route) => {
-    const response = await route.fetch();
-    const html = (await response.text())
-      .replace(/data-endpoint(="")?(?=[\s>])/, `data-endpoint=${ENDPOINT}`)
-      .replace(/<form id=feedback-form([^>]*?) hidden/, '<form id=feedback-form$1');
-    await route.fulfill({ response, body: html });
-  });
   await page.goto('/feedback/');
 }
 
-test('without a configured endpoint the app offers no feedback', async ({ page }) => {
+test('settings and the close hint lead to the feedback page', async ({ page }) => {
   await page.goto('/settings/');
-  await expect(page.locator('#feedback-section')).toHaveCount(0);
+  await expect(page.locator('#feedback-section a')).toHaveAttribute('href', 'feedback/');
+  await expect(page.locator('#close-notice-feedback')).toHaveAttribute('href', 'feedback/');
   await page.goto('/feedback/');
-  await expect(page.locator('#feedback-form')).toBeHidden();
-  await expect(page.locator('#feedback-unavailable')).toBeVisible();
+  await expect(page.locator('#feedback-form')).toBeVisible();
+  await expect(page.locator('#feedback-unavailable')).toBeHidden();
 });
 
 test('guided answers are sent with technical details and a thank-you is shown', async ({ page }) => {
