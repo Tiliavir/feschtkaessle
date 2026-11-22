@@ -1,8 +1,9 @@
 import { UI } from '../shared/index';
 
 // ─── Feedback Page ────────────────────────────────────────────────────────────
-// Guided questions, sent to the PHP endpoint (docs/feedback.md), which files
-// them as a GitHub issue. Answers stay in the form when sending fails.
+// Guided questions, sent to the shared feedback endpoint of Tiliavir/public-feedback
+// (docs/feedback.md), which files them as a GitHub issue. Answers stay in the form
+// when sending fails.
 const FeedbackApp = (() => {
   const startedAt = Date.now();
 
@@ -21,7 +22,7 @@ const FeedbackApp = (() => {
 
   function hasAnswer(data: FormData): boolean {
     for (const [name, value] of data.entries()) {
-      if (name !== 'website' && typeof value === 'string' && value.trim() !== '') return true;
+      if (name.startsWith('answers[') && typeof value === 'string' && value.trim() !== '') return true;
     }
     return false;
   }
@@ -41,16 +42,20 @@ const FeedbackApp = (() => {
       UI.setText('feedback-error', 'Bitte beantworte mindestens eine Frage.');
       return;
     }
-    data.set('version', form.dataset.version ?? '');
-    data.set('installiert', isInstalled() ? 'ja' : 'nein');
-    data.set('geraet', isMobile() ? 'mobil' : 'desktop');
+    data.set('meta[version]', form.dataset.version ?? '');
+    data.set('meta[installiert]', isInstalled() ? 'ja' : 'nein');
+    data.set('meta[geraet]', isMobile() ? 'mobil' : 'desktop');
     data.set('started', String(startedAt));
 
     const button = document.getElementById('btn-feedback-send') as HTMLButtonElement | null;
     if (button) button.disabled = true;
     UI.setText('feedback-error', '');
     try {
-      const response = await fetch(form.dataset.endpoint ?? '', { method: 'POST', body: data });
+      const response = await fetch(form.dataset.endpoint ?? '', {
+        method: 'POST',
+        body: data,
+        headers: { Accept: 'application/json' },
+      });
       if (response.status === 429) {
         UI.setText('feedback-error', 'Gerade kamen sehr viele Rückmeldungen. Bitte versuch es später nochmal.');
         return;

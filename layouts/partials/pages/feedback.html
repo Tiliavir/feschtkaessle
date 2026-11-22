@@ -1,5 +1,4 @@
-{{- /* The PHP endpoint is published next to the pages; it is deployed to Alfahosting by hand (docs/feedback.md). */ -}}
-{{- (resources.Get "php/feedback.php" | resources.ExecuteAsTemplate "feschtkaessle-feedback.php" .).Publish -}}
+{{- /* Posts to the shared feedback endpoint of Tiliavir/public-feedback (docs/feedback.md). */ -}}
 {{- $pkg := os.ReadFile "package.json" | transform.Unmarshal -}}
 <header class="app-header">
   <button id="btn-back-settings" class="btn btn-back" data-href="{{ "settings/" | relURL }}">
@@ -18,7 +17,9 @@
       Ein paar kurze Fragen – beantworte nur, was dir einfällt. Kein Name, keine Anmeldung.
     </p>
 
+    <input type="hidden" name="source" value="feschtkaessle">
     {{- range hugo.Data.feedback.questions }}
+    <input type="hidden" name="questions[{{ .id }}]" value="{{ .question }}">
     {{- if eq .type "choice" }}
     <fieldset class="settings-section feedback-question">
       <legend class="section-title">{{ .question }}</legend>
@@ -26,7 +27,7 @@
         {{- $id := .id }}
         {{- range .options }}
         <label class="feedback-choice">
-          <input type="radio" name="{{ $id }}" value="{{ .value }}">
+          <input type="radio" name="answers[{{ $id }}]" value="{{ .label }}">
           <span>{{ .label }}</span>
         </label>
         {{- end }}
@@ -35,7 +36,7 @@
     {{- else }}
     <div class="settings-section feedback-question">
       <label for="fb-{{ .id }}" class="section-title">{{ .question }}</label>
-      <textarea id="fb-{{ .id }}" name="{{ .id }}" class="text-input feedback-text" rows="3" maxlength="{{ .maxLength }}"></textarea>
+      <textarea id="fb-{{ .id }}" name="answers[{{ .id }}]" class="text-input feedback-text" rows="3" maxlength="{{ .maxLength }}"></textarea>
     </div>
     {{- end }}
     {{- end }}

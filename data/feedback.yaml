@@ -1,5 +1,5 @@
-# Guided feedback questions: single source for the form (layouts/partials/pages/feedback.html)
-# and the server-side validation (assets/php/feedback.php). All optional, at least one answer.
+# Guided feedback questions for the form (layouts/partials/pages/feedback.html). The form sends
+# question text and answer (the option label) to the shared endpoint. All optional, at least one answer.
 questions:
   - id: nutzung
     question: Wofür nutzt du die App?

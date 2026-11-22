@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 // The build has no endpoint configured (hugo.toml `feedbackEndpoint`); tests inject one into the page.
-const ENDPOINT = 'https://feedback.test/feschtkaessle-feedback.php';
+const ENDPOINT = 'https://feedback.test/feedback.php';
 const CORS = { 'Access-Control-Allow-Origin': '*' };
 
 async function openFeedback(page: Page) {
@@ -25,8 +25,10 @@ test('without a configured endpoint the app offers no feedback', async ({ page }
 
 test('guided answers are sent with technical details and a thank-you is shown', async ({ page }) => {
   let sent: string | null = null;
+  let accept: string | undefined;
   await page.route(ENDPOINT, async (route) => {
     sent = route.request().postData();
+    accept = route.request().headers().accept;
     await route.fulfill({ status: 201, headers: CORS, json: { result: 'ok' } });
   });
   await openFeedback(page);
@@ -47,16 +49,21 @@ test('guided answers are sent with technical details and a thank-you is shown', 
   await expect(page.locator('#feedback-thanks')).toBeVisible();
   await expect(page.locator('#feedback-form')).toBeHidden();
   const body = sent as unknown as string;
+  expect(accept).toBe('application/json');
   for (const [name, value] of [
-    ['nutzung', 'vereinsfest'],
-    ['umstaendlich', 'Rückgeld bei Pfand'],
+    ['source', 'feschtkaessle'],
+    ['questions[nutzung]', 'Wofür nutzt du die App?'],
+    ['answers[nutzung]', 'Vereinsfest'],
+    ['questions[umstaendlich]', 'Was war beim letzten Fest umständlich?'],
+    ['answers[umstaendlich]', 'Rückgeld bei Pfand'],
+    ['answers[nervt]', ''],
     ['website', ''],
-    ['installiert', 'nein'],
-    ['geraet', 'desktop'],
+    ['meta[installiert]', 'nein'],
+    ['meta[geraet]', 'desktop'],
   ]) {
     expect(body).toContain(`name="${name}"\r\n\r\n${value}\r\n`);
   }
-  expect(body).toMatch(/name="version"\r\n\r\n\d+\.\d+\.\d+\r\n/);
+  expect(body).toMatch(/name="meta\[version\]"\r\n\r\n\d+\.\d+\.\d+\r\n/);
   expect(body).toMatch(/name="started"\r\n\r\n\d{13}\r\n/);
 });
 
