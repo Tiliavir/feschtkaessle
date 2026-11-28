@@ -18,12 +18,12 @@
     "format": "biome check --write ."
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.8",
+    "@biomejs/biome": "2.6.9",
     "@playwright/test": "^1.65.1",
-    "@types/node": "^26.6.6",
-    "stylelint": "18.0.0",
+    "@types/node": "^26.6.10",
+    "stylelint": "18.1.0",
     "stylelint-config-standard-scss": "^18.0.0",
     "typescript": "^7.0.2",
-    "vnu-jar": "26.11.17"
+    "vnu-jar": "26.11.20"
   }
 }
